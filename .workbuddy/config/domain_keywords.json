@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "description": "领域关键词配置 — 按需添加你的业务关键词",
+  "entity_patterns": [],
+  "concept_keywords": [],
+  "topic_indicators": {},
+  "metric_patterns": []
+}

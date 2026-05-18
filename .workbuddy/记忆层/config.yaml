@@ -1,0 +1,97 @@
+# MemoryOS 风格记忆系统配置
+# 参考: BAI-LAB/MemoryOS (EMNLP 2025 Oral)
+
+# ============ 容量参数 ============
+capacity:
+  # 短期记忆容量 (默认: 7条)
+  short_term: 7
+
+  # 中期记忆容量 (默认: 1000条)
+  mid_term: 1000
+
+  # 长期知识容量 (默认: 100条)
+  long_term_knowledge: 100
+
+  # 检索队列容量 (默认: 7条)
+  retrieval_queue: 7
+
+# ============ 热度参数 ============
+heat:
+  # 中期记忆热度阈值
+  # 热力值 = 访问频率 × 交互长度
+  # 热力值超过此阈值 → 晋升到长期记忆
+  mid_term_threshold: 5.0
+
+  # 中期记忆相似度阈值
+  # 相似度超过此阈值 → 合并记忆
+  similarity_threshold: 0.7
+
+  # 热度衰减因子 (每次访问后)
+  decay_factor: 0.95
+
+  # 最低保留热度
+  min_heat_to_keep: 1.0
+
+# ============ 五种记忆类型 ============
+memory_types:
+  episodic:
+    description: "情景记忆 - 具体项目执行过程"
+    folder: "episodic"
+    priority: 1
+
+  semantic:
+    description: "语义记忆 - 通用知识和概念"
+    folder: "semantic"
+    priority: 2
+
+  procedural:
+    description: "程序记忆 - 工作流和技能"
+    folder: "procedural"
+    priority: 2
+
+  emotional:
+    description: "情感记忆 - 决策偏好和经验"
+    folder: "emotional"
+    priority: 3
+
+  somatic:
+    description: "躯体记忆 - 系统参数和性能"
+    folder: "somatic"
+    priority: 1
+
+# ============ 存储配置 ============
+storage:
+  base_path: "./memory_data"
+
+  # 是否使用ChromaDB存储向量
+  use_chromadb: true
+  chromadb_path: "./memory_data/chromadb"
+
+  # 嵌入模型
+  embedding_model: "BAAI/bge-m3"
+
+# ============ 检索配置 ============
+retrieval:
+  # 默认返回数量
+  default_top_k: 5
+
+  # 混合检索权重
+  weights:
+    short_term: 0.3
+    mid_term: 0.4
+    long_term: 0.3
+
+  # 是否启用混合检索 (Vector + Graph)
+  hybrid_mode: true
+
+# ============ 自动清理 ============
+cleanup:
+  # 是否启用自动清理
+  enabled: true
+
+  # 清理周期 (天数)
+  short_term_days: 7
+
+  # 低热度条目自动删除
+  delete_low_heat: true
+  low_heat_threshold: 0.5

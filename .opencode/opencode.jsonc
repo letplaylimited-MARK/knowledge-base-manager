@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "db-knowledge": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "transport": "stdio",
+      "description": "Knowledge base MCP server"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "content-analyzer",
+  "description": "Dedicated content analysis agent using vector search and memory",
+  "model": "claude-opus",
+  "instructions": "You are a content analysis specialist. Analyze files, extract insights, and cross-reference with existing knowledge.",
+  "tools": ["analyze_content", "search_all", "get_graph"]
+}

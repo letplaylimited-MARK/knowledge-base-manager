@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>搜索: {{ query }} — 知识管理工具</title>
+<style>
+body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+h1 a { color: #333; text-decoration: none; }
+.search-box { display: flex; gap: 8px; margin: 20px 0; }
+.search-box input { flex: 1; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 6px; }
+.search-box button { padding: 12px 24px; background: #4a90d9; color: #fff; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+.result { background: #fff; padding: 16px; margin: 8px 0; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.result .path { font-size: 12px; color: #888; }
+.result .title { font-size: 16px; font-weight: 600; margin: 4px 0; }
+.result .title a { color: #1a0dab; text-decoration: none; }
+.result .snippet { font-size: 14px; color: #555; }
+.result .score { font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+<h1><a href="/">知识管理工具</a> / 搜索</h1>
+
+<form class="search-box" action="/search" method="get">
+  <input type="text" name="q" value="{{ query }}">
+  <button type="submit">搜索</button>
+</form>
+
+{% if results %}
+<p>找到 {{ results|length }} 个结果</p>
+{% for r in results %}
+<div class="result">
+  <div class="path">{{ r.path }}</div>
+  <div class="title"><a href="/browse/{{ r.path }}">{{ r.title }}</a></div>
+  <div class="snippet">{{ r.snippet }}</div>
+  <div class="score">得分: {{ "%.2f"|format(r.score) }} | {{ r.type }}</div>
+</div>
+{% endfor %}
+{% elif query %}
+<p>未找到匹配 "{{ query }}" 的结果</p>
+{% endif %}
+</body>
+</html>
