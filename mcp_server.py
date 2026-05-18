@@ -250,6 +250,99 @@ async def handle_get_content_stats() -> str:
         return json.dumps({"error": str(e)})
 
 
+async def handle_enhanced_scan_inbox() -> str:
+    try:
+        eiw = _get_module("enhanced_inbox_watcher")
+        files = eiw.scan_inbox()
+        return json.dumps({"files": files, "count": len(files)}, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+async def handle_extract_docx_text(path: str) -> str:
+    try:
+        ed = _get_module("extract_docx")
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = WORKSPACE / file_path
+        text = ed.extract_docx(str(file_path))
+        return json.dumps({"path": str(file_path), "text": text}, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+async def handle_analyze_project_relationships(path: str = None) -> str:
+    try:
+        prm_mod = _get_module("project_relationship_manager")
+        mgr = prm_mod.ProjectRelationshipManager(str(WORKSPACE))
+        if path:
+            target_path = Path(path)
+            if not target_path.is_absolute():
+                target_path = WORKSPACE / target_path
+            content = target_path.read_text(encoding="utf-8", errors="ignore")
+            sig = mgr.analyze_file_signature(str(target_path), content)
+            mgr.files[str(target_path)] = sig
+        else:
+            import glob
+            scan_patterns = ["**/*.md", "**/*.py", "**/*.txt", "**/*.json", "**/*.yaml", "**/*.yml"]
+            all_files = []
+            for pat in scan_patterns:
+                all_files.extend(glob.glob(str(WORKSPACE / pat), recursive=True))
+            all_files = list(set(all_files))[:200]
+            for fp in all_files:
+                try:
+                    content = Path(fp).read_text(encoding="utf-8", errors="ignore")
+                    sig = mgr.analyze_file_signature(fp, content)
+                    mgr.files[fp] = sig
+                except:
+                    pass
+        projects = mgr.identify_project_boundaries(list(mgr.files.values()))
+        mgr.projects = {p.candidate_id: p for p in projects}
+        relations = mgr.discover_cross_project_relations()
+        report = mgr.generate_comprehensive_report()
+        return json.dumps(report, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+async def handle_run_file_pipeline(path: str) -> str:
+    try:
+        fpp_mod = _get_module("file_processing_pipeline")
+        pipeline = fpp_mod.FileProcessingPipeline(str(WORKSPACE))
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = WORKSPACE / file_path
+        result = pipeline.process_file(file_path)
+        report = pipeline.generate_processing_report(result)
+        return json.dumps({
+            "core_topic": result.understanding.core_topic,
+            "content_type": result.understanding.content_type,
+            "quality_level": result.understanding.quality_level,
+            "coexistence_type": result.coexistence.coexistence_type,
+            "should_rename": result.naming.should_rename,
+            "suggested_name": result.naming.suggested_name,
+            "confidence": result.naming.confidence,
+            "final_recommendation": result.final_recommendation,
+            "full_report": report,
+        }, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+async def handle_project_decision_workflow(path: str) -> str:
+    try:
+        pdw_mod = _get_module("project_decision_workflow")
+        workflow = pdw_mod.ProjectDecisionWorkflow(str(WORKSPACE))
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = WORKSPACE / file_path
+        content = file_path.read_text(encoding="utf-8", errors="ignore")
+        result = workflow.process_new_file(str(file_path), content)
+        return json.dumps(result, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
 HANDLERS = {
     "search_all": handle_search_all,
     "vector_search": handle_vector_search,
@@ -265,6 +358,11 @@ HANDLERS = {
     "get_graph": handle_get_graph,
     "watch_inbox": handle_watch_inbox,
     "get_content_stats": handle_get_content_stats,
+    "enhanced_scan_inbox": handle_enhanced_scan_inbox,
+    "extract_docx_text": handle_extract_docx_text,
+    "analyze_project_relationships": handle_analyze_project_relationships,
+    "run_file_pipeline": handle_run_file_pipeline,
+    "project_decision_workflow": handle_project_decision_workflow,
 }
 
 
@@ -407,6 +505,57 @@ TOOL_DEFINITIONS = [
         inputSchema={
             "type": "object",
             "properties": {},
+        },
+    ),
+    Tool(
+        name="enhanced_scan_inbox",
+        description="Enhanced inbox scan with keyword classification",
+        inputSchema={
+            "type": "object",
+            "properties": {},
+        },
+    ),
+    Tool(
+        name="extract_docx_text",
+        description="Extract text from DOCX file",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Path to .docx file"},
+            },
+            "required": ["path"],
+        },
+    ),
+    Tool(
+        name="analyze_project_relationships",
+        description="Analyze project relationships and discover cross-project relations",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Specific path to analyze, or empty for workspace-wide"},
+            },
+        },
+    ),
+    Tool(
+        name="run_file_pipeline",
+        description="Run full file processing pipeline (read, understand, analyze, name)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "File path to process"},
+            },
+            "required": ["path"],
+        },
+    ),
+    Tool(
+        name="project_decision_workflow",
+        description="Run project decision workflow for new files",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "File path to make decision on"},
+            },
+            "required": ["path"],
         },
     ),
 ]
