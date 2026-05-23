@@ -102,6 +102,8 @@ def main():
     parser.add_argument("--cli", nargs="+", help="CLI 模式: search '关键词'")
     parser.add_argument("--port", type=int, default=5000, help="Web 端口 (默认 5000)")
     parser.add_argument("--daemon", action="store_true", help="守护进程模式")
+    parser.add_argument("--no-bootstrap", action="store_true", help="跳过开箱即用引导")
+    parser.add_argument("--bootstrap-force", action="store_true", help="强制重建引导数据")
     args = parser.parse_args()
 
     if args.cli:
@@ -113,6 +115,18 @@ def main():
                 print(f"[{r['score']:.2f}] {r['path']}")
                 print(f"    {r['snippet'][:80]}...")
         return
+
+    # 开箱即用引导：自动创建 demo 数据 + 构建搜索索引
+    if not args.no_bootstrap:
+        try:
+            from bootstrap import bootstrap, print_bootstrap_report
+            print("\n[开箱即用引导] 检查环境...")
+            result = bootstrap(force=args.bootstrap_force)
+            print_bootstrap_report(result)
+        except ImportError:
+            print("\n[开箱即用引导] 跳过（bootstrap 模块未找到）")
+        except Exception as e:
+            print(f"\n[开箱即用引导] 警告: {e}")
 
     print(f"启动知识管理工具 -> http://localhost:{args.port}")
     app.run(host="127.0.0.1", port=args.port, debug=not args.daemon)
