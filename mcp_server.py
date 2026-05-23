@@ -392,6 +392,7 @@ async def handle_run_workflow(name: str, context: str = None) -> str:
         result = await _workflow_engine.run(name, ctx)
         return json.dumps(result, ensure_ascii=False, default=str)
     except ValueError as e:
+        logger.warning(f"handle_run_workflow ValueError: {e}")
         return json.dumps({"error": str(e)}, ensure_ascii=False)
     except Exception as e:
         logger.exception("handle_run_workflow failed")
@@ -669,6 +670,7 @@ def _startup_healthcheck():
         try:
             __import__(mod_name)
         except ImportError as e:
+            logger.warning(f"Module import failed: {mod_name}: {e}")
             issues.append(f"  [FAIL] {mod_name}: {e}")
     if not MEMORY_DIR.exists():
         issues.append(f"  [WARN] Memory dir not found: {MEMORY_DIR}")

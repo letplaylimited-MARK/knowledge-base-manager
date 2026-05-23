@@ -141,7 +141,6 @@ class RelationDiscovery:
                     target_content = f.read(2000)
         except Exception as e:
             logger.warning(f"读取目标文件失败: {e}")
-            pass
         
         for candidate in candidate_files:
             if candidate == target_file:
@@ -165,7 +164,6 @@ class RelationDiscovery:
                     content_score = self._calculate_content_similarity(target_content, candidate_content)
             except Exception as e:
                 logger.warning(f"读取候选文件失败: {e}")
-                pass
             
             # 综合关联度
             relation_score = entity_score * 0.4 + tag_score * 0.3 + content_score * 0.3
