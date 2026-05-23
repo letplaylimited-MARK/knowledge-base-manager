@@ -32,4 +32,4 @@ jobs:
       - name: Test with pytest
         run: python -m pytest tests/ -v --tb=short -q
         env:
-          PYTHONPATH: .workbuddy/scripts;.workbuddy/记忆层
+          PYTHONPATH: .workbuddy/scripts:.workbuddy/记忆层

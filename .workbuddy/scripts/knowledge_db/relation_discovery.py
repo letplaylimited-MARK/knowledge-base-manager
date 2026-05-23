@@ -136,7 +136,7 @@ class RelationDiscovery:
             if target_file.suffix in ['.txt', '.md']:
                 with open(target_file, 'r', encoding='utf-8', errors='ignore') as f:
                     target_content = f.read(2000)
-        except:
+        except Exception:
             pass
         
         for candidate in candidate_files:
@@ -159,7 +159,7 @@ class RelationDiscovery:
                     with open(candidate, 'r', encoding='utf-8', errors='ignore') as f:
                         candidate_content = f.read(2000)
                     content_score = self._calculate_content_similarity(target_content, candidate_content)
-            except:
+            except Exception:
                 pass
             
             # 综合关联度

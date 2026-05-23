@@ -7,7 +7,6 @@ dist/
 build/
 .workbuddy/backup/
 # .workbuddy/scripts/knowledge_db/  — 已移除排除，file_scanner.py/relation_discovery.py 需被分发
-.workbuddy/索引/
 .workbuddy/记忆层/memory_data/
 .workbuddy/记忆层/data/
 .workbuddy/记忆层/checkpoints/
@@ -17,5 +16,5 @@ memory_data/
 *.db
 *.sqlite
 *.sqlite3
-faiss_index.*
+*.faiss
 .coverage
