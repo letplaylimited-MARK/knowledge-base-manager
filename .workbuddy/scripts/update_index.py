@@ -111,7 +111,7 @@ def update_index():
 
     # 重建向量索引
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from path_setup import setup_scripts_only; setup_scripts_only()
         from vector_search import rebuild_index as vs_rebuild, build_faiss_index, HAS_VECTOR
         _ = vs_rebuild(SCAN_DIRS)
         if HAS_VECTOR:

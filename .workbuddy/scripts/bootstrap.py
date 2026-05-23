@@ -269,10 +269,7 @@ def ensure_search_index(force: bool = False) -> dict:
             return {"documents": count, "faiss": has_faiss, "rebuilt": False}
 
     # 需要重建
-    import sys
-    _scripts = str(Path(__file__).resolve().parent)
-    if _scripts not in sys.path:
-        sys.path.insert(0, _scripts)
+    from path_setup import setup_scripts_only; setup_scripts_only()
 
     from vector_search import rebuild_index, build_faiss_index, HAS_VECTOR
 

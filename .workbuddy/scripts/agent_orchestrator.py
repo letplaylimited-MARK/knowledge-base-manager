@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import re
-import sys
+from path_setup import setup
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 AGENT_POOL_DIR = SCRIPTS_DIR.parent / "AI协作体系" / "智能体池"
@@ -98,7 +98,7 @@ class AgentOrchestrator:
 
     def _get_adapter(self):
         if self._adapter is None:
-            sys.path.insert(0, str(SCRIPTS_DIR))
+            setup()
             from model_adapter import ModelAdapter
             self._adapter = ModelAdapter()
         return self._adapter
@@ -128,8 +128,7 @@ class AgentOrchestrator:
 
     def save_state(self, agent: Agent, result: str):
         try:
-            if str(MEMORY_DIR) not in sys.path:
-                sys.path.insert(0, str(MEMORY_DIR))
+            setup()
             from memoryos import MemoryOS
             mos = MemoryOS(storage_path=str(MEMORY_DIR / "memory_data"))
             mos.add_memory(
