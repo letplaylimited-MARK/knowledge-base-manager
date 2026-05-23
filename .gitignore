@@ -22,4 +22,5 @@ memory_data/
 .coverage
 .workbuddy/七角色/
 .workbuddy/index/
-.opencode/
+.opencode/*
+!.opencode/.gitignore
