@@ -40,8 +40,11 @@ def browse(subpath=""):
     if not str(current).startswith(str(base)):
         return "Forbidden", 403
 
+    if not current.exists():
+        return "路径不存在", 404
+
     if current.is_file():
-        content = current.read_text(encoding="utf-8")
+        content = current.read_text(encoding="utf-8", errors="replace")
         return render_template("browse.html", path=subpath, content=content, is_file=True)
 
     items = []
@@ -59,7 +62,10 @@ def ingest():
 
     from auto_organizer import AutoOrganizer
     org = AutoOrganizer(str(WORKSPACE))
-    result = org.process_and_store(Path(file_path), dry_run=False)
+    try:
+        result = org.process_and_store(Path(file_path), dry_run=False)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
     return jsonify({"status": "ok", "target": result.get("plan").target_directory if result.get("plan") else None})
 
 
