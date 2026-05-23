@@ -1,6 +1,7 @@
 import sys
 import json
 import asyncio
+import logging
 from pathlib import Path
 
 from mcp.server import Server, NotificationOptions
@@ -12,24 +13,21 @@ WORKSPACE = Path(__file__).resolve().parent
 MEMORY_DIR = WORKSPACE / ".workbuddy" / "记忆层"
 sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "scripts"))
 sys.path.insert(1, str(MEMORY_DIR))
+import workflow_engine as _we_mod
+
+logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")
+logger = logging.getLogger("mcp-server")
 
 server = Server("db-knowledge")
-
-_imports = {}
-
-def _get_module(name: str):
-    if name not in _imports:
-        _imports[name] = __import__(name)
-    return _imports[name]
 
 
 async def handle_search_all(query: str, limit: int = 5) -> str:
     try:
-        sc = _get_module("search_content")
-        vs = _get_module("vector_search")
-        content_results = sc.search_content(query, max_results=limit)
-        filename_results = sc.search_filename(query)
-        vec_results = vs.search(query, top_k=limit)
+        from search_content import search_content, search_filename
+        from vector_search import search as vs_search
+        content_results = search_content(query, max_results=limit)
+        filename_results = search_filename(query)
+        vec_results = vs_search(query, top_k=limit)
         return json.dumps({
             "content_matches": content_results[:limit],
             "filename_matches": filename_results[:limit],
@@ -42,10 +40,10 @@ async def handle_search_all(query: str, limit: int = 5) -> str:
         return json.dumps({"error": str(e)})
 
 
-async def handle_vector_search(query: str, limit: int = 5) -> str:
+async def handle_vector_search(query: str, limit: int = 5, **kwargs) -> str:
     try:
-        vs = _get_module("vector_search")
-        results = vs.search(query, top_k=limit)
+        from vector_search import search as vs_search
+        results = vs_search(query, top_k=limit)
         return json.dumps(results, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -53,20 +51,20 @@ async def handle_vector_search(query: str, limit: int = 5) -> str:
 
 async def handle_search_memory(query: str, context: str = None) -> str:
     try:
-        mem_mod = _get_module("memoryos")
-        mem = mem_mod.MemoryOS(str(MEMORY_DIR / "memory_data"))
+        from memoryos import MemoryOS
+        mem = MemoryOS(str(MEMORY_DIR / "memory_data"))
         results = mem.search_memory(query)
         return json.dumps(results, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
 
 
-async def handle_keyword_search(keywords: list) -> str:
+async def handle_keyword_search(keywords: list, **kwargs) -> str:
     try:
-        sc = _get_module("search_content")
+        from search_content import search_content
         all_results = {}
         for kw in keywords:
-            results = sc.search_content(kw, max_results=20)
+            results = search_content(kw, max_results=20)
             all_results[kw] = results[:20]
         return json.dumps(all_results, ensure_ascii=False)
     except Exception as e:
@@ -75,8 +73,8 @@ async def handle_keyword_search(keywords: list) -> str:
 
 async def handle_analyze_content(path: str) -> str:
     try:
-        ca = _get_module("content_analyzer")
-        analyzer = ca.ContentAnalyzer()
+        from content_analyzer import ContentAnalyzer
+        analyzer = ContentAnalyzer()
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
@@ -99,8 +97,8 @@ async def handle_analyze_content(path: str) -> str:
 
 async def handle_route_content(path: str) -> str:
     try:
-        sr = _get_module("smart_router")
-        router = sr.SmartRouter(str(WORKSPACE))
+        from smart_router import SmartRouter
+        router = SmartRouter(str(WORKSPACE))
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
@@ -113,7 +111,7 @@ async def handle_route_content(path: str) -> str:
         result = router.route(content, context)
         return json.dumps({
             "primary_layer": str(result["primary_layer"].name) if hasattr(result["primary_layer"], "name") else str(result["primary_layer"]),
-            "secondary_layers": [str(l.name) if hasattr(l, "name") else str(l) for l in result["secondary_layers"]],
+            "secondary_layers": [str(ly.name) if hasattr(ly, "name") else str(ly) for ly in result["secondary_layers"]],
             "confidence": result["confidence"],
             "reasoning": result["reasoning"],
             "suggested_path": result["suggested_path"],
@@ -124,8 +122,8 @@ async def handle_route_content(path: str) -> str:
 
 async def handle_process_file(path: str) -> str:
     try:
-        ao = _get_module("auto_organizer")
-        org = ao.AutoOrganizer(str(WORKSPACE))
+        from auto_organizer import AutoOrganizer
+        org = AutoOrganizer(str(WORKSPACE))
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
@@ -149,26 +147,22 @@ async def handle_process_file(path: str) -> str:
 
 async def handle_get_status() -> str:
     try:
-        vs = _get_module("vector_search")
-        index_dir = vs.INDEX_DIR
-        db_path = vs.DB_PATH
-        faiss_path = vs.FAISS_PATH
+        import vector_search as _vs
         import sqlite3
         doc_count = 0
-        if db_path.exists():
+        if _vs.DB_PATH.exists():
             try:
-                conn = sqlite3.connect(str(db_path))
-                doc_count = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
-                conn.close()
+                with sqlite3.connect(str(_vs.DB_PATH)) as conn:
+                    doc_count = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
             except Exception:
                 pass
         return json.dumps({
             "server": "db-knowledge",
             "workspace": str(WORKSPACE),
-            "index_db_exists": db_path.exists(),
-            "faiss_index_exists": faiss_path.exists(),
+            "index_db_exists": _vs.DB_PATH.exists(),
+            "faiss_index_exists": _vs.FAISS_PATH.exists(),
             "documents_indexed": doc_count,
-            "has_vector_capability": vs.HAS_VECTOR,
+            "has_vector_capability": _vs.HAS_VECTOR,
         }, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -176,8 +170,8 @@ async def handle_get_status() -> str:
 
 async def handle_rebuild_index() -> str:
     try:
-        ui = _get_module("update_index")
-        files = ui.update_index()
+        from update_index import update_index
+        files = update_index()
         return json.dumps({"indexed_files": len(files)}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -185,8 +179,8 @@ async def handle_rebuild_index() -> str:
 
 async def handle_run_maintenance() -> str:
     try:
-        mt = _get_module("maintenance_task")
-        mt.main()
+        import maintenance_task
+        maintenance_task.main()
         return json.dumps({"status": "maintenance completed"}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -194,8 +188,8 @@ async def handle_run_maintenance() -> str:
 
 async def handle_run_backup() -> str:
     try:
-        mt = _get_module("maintenance_task")
-        mt.backup()
+        import maintenance_task
+        maintenance_task.backup()
         return json.dumps({"status": "backup completed"}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -203,8 +197,8 @@ async def handle_run_backup() -> str:
 
 async def handle_get_graph() -> str:
     try:
-        mem_mod = _get_module("memoryos")
-        mem = mem_mod.MemoryOS(str(MEMORY_DIR / "memory_data"))
+        from memoryos import MemoryOS
+        mem = MemoryOS(str(MEMORY_DIR / "memory_data"))
         summary = mem.get_memory_summary()
         return json.dumps(summary, ensure_ascii=False)
     except Exception as e:
@@ -213,8 +207,8 @@ async def handle_get_graph() -> str:
 
 async def handle_watch_inbox() -> str:
     try:
-        iw = _get_module("inbox_watcher")
-        files = iw.scan_inbox()
+        from inbox_watcher import scan_inbox
+        files = scan_inbox()
         return json.dumps({"files": files, "count": len(files)}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -223,15 +217,14 @@ async def handle_watch_inbox() -> str:
 async def handle_get_content_stats() -> str:
     try:
         import sqlite3
-        vs = _get_module("vector_search")
-        mem_mod = _get_module("memoryos")
-        mem = mem_mod.MemoryOS(str(MEMORY_DIR / "memory_data"))
+        import vector_search as _vs
+        from memoryos import MemoryOS
+        mem = MemoryOS(str(MEMORY_DIR / "memory_data"))
         stats = {}
-        if vs.DB_PATH.exists():
-            conn = sqlite3.connect(str(vs.DB_PATH))
-            doc_count = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
-            type_counts = conn.execute("SELECT file_type, COUNT(*) FROM documents GROUP BY file_type").fetchall()
-            conn.close()
+        if _vs.DB_PATH.exists():
+            with sqlite3.connect(str(_vs.DB_PATH)) as conn:
+                doc_count = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+                type_counts = conn.execute("SELECT file_type, COUNT(*) FROM documents GROUP BY file_type").fetchall()
             stats["indexed_documents"] = doc_count
             stats["file_type_distribution"] = dict(type_counts)
         mem_summary = mem.get_memory_summary()
@@ -252,8 +245,8 @@ async def handle_get_content_stats() -> str:
 
 async def handle_enhanced_scan_inbox() -> str:
     try:
-        eiw = _get_module("enhanced_inbox_watcher")
-        files = eiw.scan_inbox()
+        from enhanced_inbox_watcher import scan_inbox
+        files = scan_inbox()
         return json.dumps({"files": files, "count": len(files)}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -261,11 +254,11 @@ async def handle_enhanced_scan_inbox() -> str:
 
 async def handle_extract_docx_text(path: str) -> str:
     try:
-        ed = _get_module("extract_docx")
+        from extract_docx import extract_docx
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
-        text = ed.extract_docx(str(file_path))
+        text = extract_docx(str(file_path))
         return json.dumps({"path": str(file_path), "text": text}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
@@ -273,8 +266,8 @@ async def handle_extract_docx_text(path: str) -> str:
 
 async def handle_analyze_project_relationships(path: str = None) -> str:
     try:
-        prm_mod = _get_module("project_relationship_manager")
-        mgr = prm_mod.ProjectRelationshipManager(str(WORKSPACE))
+        from project_relationship_manager import ProjectRelationshipManager
+        mgr = ProjectRelationshipManager(str(WORKSPACE))
         if path:
             target_path = Path(path)
             if not target_path.is_absolute():
@@ -294,11 +287,11 @@ async def handle_analyze_project_relationships(path: str = None) -> str:
                     content = Path(fp).read_text(encoding="utf-8", errors="ignore")
                     sig = mgr.analyze_file_signature(fp, content)
                     mgr.files[fp] = sig
-                except:
+                except Exception:
                     pass
         projects = mgr.identify_project_boundaries(list(mgr.files.values()))
         mgr.projects = {p.candidate_id: p for p in projects}
-        relations = mgr.discover_cross_project_relations()
+        _ = mgr.discover_cross_project_relations()
         report = mgr.generate_comprehensive_report()
         return json.dumps(report, ensure_ascii=False)
     except Exception as e:
@@ -307,8 +300,8 @@ async def handle_analyze_project_relationships(path: str = None) -> str:
 
 async def handle_run_file_pipeline(path: str) -> str:
     try:
-        fpp_mod = _get_module("file_processing_pipeline")
-        pipeline = fpp_mod.FileProcessingPipeline(str(WORKSPACE))
+        from file_processing_pipeline import FileProcessingPipeline
+        pipeline = FileProcessingPipeline(str(WORKSPACE))
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
@@ -331,8 +324,8 @@ async def handle_run_file_pipeline(path: str) -> str:
 
 async def handle_project_decision_workflow(path: str) -> str:
     try:
-        pdw_mod = _get_module("project_decision_workflow")
-        workflow = pdw_mod.ProjectDecisionWorkflow(str(WORKSPACE))
+        from project_decision_workflow import ProjectDecisionWorkflow
+        workflow = ProjectDecisionWorkflow(str(WORKSPACE))
         file_path = Path(path)
         if not file_path.is_absolute():
             file_path = WORKSPACE / file_path
@@ -343,7 +336,47 @@ async def handle_project_decision_workflow(path: str) -> str:
         return json.dumps({"error": str(e)})
 
 
+# Predefined workflow engine setup
+_workflow_engine = _we_mod.WorkflowEngine()
+
+async def _wf_vector(**kwargs):
+    raw = await handle_vector_search(
+        query=kwargs.get("query", ""), limit=kwargs.get("limit", 5))
+    return json.loads(raw)
+
+async def _wf_keyword(**kwargs):
+    raw = await handle_keyword_search(
+        keywords=kwargs.get("keywords", []))
+    return json.loads(raw)
+
+async def _wf_search(**kwargs):
+    raw = await handle_search_all(
+        query=kwargs.get("query", ""), limit=kwargs.get("limit", 5))
+    return json.loads(raw)
+
+_workflow_engine.define("multi_search", [
+    _we_mod.Step("vector", _wf_vector),
+    _we_mod.Step("keyword", _wf_keyword),
+])
+_workflow_engine.define("search_and_analyze", [
+    _we_mod.Step("search", _wf_search),
+    _we_mod.Step("keyword", _wf_keyword),
+])
+
+
+async def handle_run_workflow(name: str, context: str = None) -> str:
+    try:
+        ctx = json.loads(context) if context else {}
+        result = await _workflow_engine.run(name, ctx)
+        return json.dumps(result, ensure_ascii=False, default=str)
+    except ValueError as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": f"Workflow execution failed: {e}"}, ensure_ascii=False)
+
+
 HANDLERS = {
+    "run_workflow": handle_run_workflow,
     "search_all": handle_search_all,
     "vector_search": handle_vector_search,
     "search_memory": handle_search_memory,
@@ -367,6 +400,18 @@ HANDLERS = {
 
 
 TOOL_DEFINITIONS = [
+    Tool(
+        name="run_workflow",
+        description="Execute a multi-step workflow (analyze_file, search_and_summarize)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "description": "Workflow name"},
+                "context": {"type": "string", "description": "JSON context dict"},
+            },
+            "required": ["name"],
+        },
+    ),
     Tool(
         name="search_all",
         description="Combined search across content, filenames, and vectors",
@@ -589,5 +634,38 @@ async def main():
             ),
         )
 
+def _startup_healthcheck():
+    issues = []
+    MODULES_TO_CHECK = [
+        "search_content", "vector_search", "memoryos", "content_analyzer",
+        "smart_router", "auto_organizer", "maintenance_task", "inbox_watcher",
+        "enhanced_inbox_watcher", "extract_docx", "project_relationship_manager",
+        "file_processing_pipeline", "project_decision_workflow",
+    ]
+    for mod_name in MODULES_TO_CHECK:
+        try:
+            __import__(mod_name)
+        except ImportError as e:
+            issues.append(f"  [FAIL] {mod_name}: {e}")
+    if not MEMORY_DIR.exists():
+        issues.append(f"  [WARN] Memory dir not found: {MEMORY_DIR}")
+    index_dir = WORKSPACE / ".workbuddy" / "index"
+    if not (index_dir / "search_index.db").exists():
+        issues.append("  [WARN] No search_index.db found - run rebuild_index first")
+    try:
+        import vector_search as _vs
+        if not _vs.FAISS_PATH.exists():
+            n = _vs.build_faiss_index()
+            issues.append(f"  [AUTO] FAISS index missing, rebuilt: {n} vectors")
+    except Exception:
+        pass
+    logger.info(f"Healthcheck: {len(MODULES_TO_CHECK)} modules checked")
+    if issues:
+        logger.warning(f"Issues ({len(issues)}):\n" + "\n".join(issues))
+    else:
+        logger.info("All checks passed")
+
+
 if __name__ == "__main__":
+    _startup_healthcheck()
     asyncio.run(main())

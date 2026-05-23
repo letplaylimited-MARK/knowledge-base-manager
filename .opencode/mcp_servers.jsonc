@@ -1,10 +1,10 @@
 {
-  "mcpServers": {
+  "mcp": {
     "db-knowledge": {
+      "type": "local",
       "command": "python",
       "args": ["mcp_server.py"],
-      "transport": "stdio",
-      "description": "Knowledge base MCP server providing search, content analysis, pipeline, and maintenance tools"
+      "enabled": true
     }
   }
 }

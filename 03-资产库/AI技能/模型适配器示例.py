@@ -14,7 +14,7 @@
 
 import os
 import yaml
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from pathlib import Path
 
 class ModelAdapter:

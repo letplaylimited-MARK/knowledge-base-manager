@@ -4,9 +4,7 @@
 备份工作台重要文件
 """
 
-import os
 import shutil
-import zipfile
 from pathlib import Path
 from datetime import datetime
 
@@ -16,7 +14,7 @@ BACKUP_ROOT = WORKSPACE / ".workbuddy" / "backup"
 def backup_files(backup_type='daily'):
     """执行备份"""
     today = datetime.now()
-    
+
     # 创建备份目录
     if backup_type == 'daily':
         backup_dir = BACKUP_ROOT / "daily" / today.strftime('%Y-%m-%d')
@@ -25,9 +23,9 @@ def backup_files(backup_type='daily'):
         backup_dir = BACKUP_ROOT / "weekly" / f"{today.year}-W{week:02d}"
     else:
         backup_dir = BACKUP_ROOT / "monthly" / today.strftime('%Y-%m')
-    
+
     backup_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 需要备份的目录
     dirs_to_backup = [
         ('03-资产库', '资产库'),
@@ -36,9 +34,9 @@ def backup_files(backup_type='daily'):
         ('.workbuddy', '系统核心'),
         ('AGENTS.md', '索引配置'),
     ]
-    
+
     print(f"开始备份到: {backup_dir}")
-    
+
     for item, desc in dirs_to_backup:
         src = WORKSPACE / item
         if src.exists():

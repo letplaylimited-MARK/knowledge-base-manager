@@ -2,7 +2,6 @@
 # Knowledge Base Index Auto-Update Script
 # Scans Prompt directory and auto-updates AGENTS.md
 
-import os
 import re
 import sys
 from datetime import datetime
@@ -47,12 +46,12 @@ def scan_directory():
     """Scan all project directories for documentation"""
     print(f"Scanning {len(SCAN_DIRS)} directories...")
     indexed_files = []
-    
+
     for scan_dir in SCAN_DIRS:
         if not scan_dir.exists():
             print(f"  ⚠️  Directory not found: {scan_dir.name}")
             continue
-            
+
         files_found = list(scan_dir.rglob("*.md")) + list(scan_dir.rglob("*.py"))
         for f in files_found:
             rel_path = str(f.relative_to(WORKSPACE))
@@ -62,7 +61,7 @@ def scan_directory():
                 "ext": f.suffix,
                 "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
             })
-    
+
     return indexed_files
 
 
@@ -70,22 +69,22 @@ def print_summary(files):
     """Print index summary"""
     md_count = sum(1 for f in files if f["ext"] == ".md")
     py_count = sum(1 for f in files if f["ext"] == ".py")
-    
+
     print(f"\n{'='*40}")
-    print(f"[索引更新报告]")
+    print("[索引更新报告]")
     print(f"{'='*40}")
     print(f"  总文件数: {len(files)}")
     print(f"  Markdown: {md_count}")
     print(f"  Python:   {py_count}")
     print(f"  更新时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"{'='*40}")
-    
+
     from collections import defaultdict
     dirs = defaultdict(list)
     for f in files:
         parent = str(Path(f["path"]).parent)
         dirs[parent].append(f["name"])
-    
+
     print("\n目录分布:")
     for d, names in sorted(dirs.items()):
         print(f"  {d}/ -- {len(names)} 个文件")
@@ -96,31 +95,31 @@ def update_index():
     print("[更新知识索引]\n")
     files = scan_directory()
     print_summary(files)
-    
+
     if AGENTS_FILE.exists():
         with open(AGENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         today = datetime.now().strftime('%Y-%m-%d')
         content = re.sub(r"知识索引: \d{4}-\d{2}-\d{2}", f"知识索引: {today}", content)
         content = re.sub(r"系统结构: \d{4}-\d{2}-\d{2}", f"系统结构: {today}", content)
         content = re.sub(r"AI配置: \d{4}-\d{2}-\d{2}", f"AI配置: {today}", content)
-        
+
         with open(AGENTS_FILE, "w", encoding="utf-8") as f:
             f.write(content)
         print("\nAGENTS.md 时间戳已更新")
-    
+
     # 重建向量索引
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from vector_search import rebuild_index as vs_rebuild, build_faiss_index, HAS_VECTOR
-        count = vs_rebuild(SCAN_DIRS)
+        _ = vs_rebuild(SCAN_DIRS)
         if HAS_VECTOR:
             v = build_faiss_index()
             print(f"  向量索引已更新: {v} 条")
     except Exception as e:
         print(f"  向量索引失败: {e}")
-    
+
     return files
 
 

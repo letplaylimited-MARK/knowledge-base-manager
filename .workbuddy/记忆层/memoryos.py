@@ -9,7 +9,6 @@ MemoryOS 风格记忆系统
 """
 
 import json
-import os
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
@@ -193,9 +192,13 @@ class MidTermMemory:
         """检查相似度，合并相近记忆"""
         for existing in self._memory:
             if existing.memory_type == new_entry.memory_type:
-                # 简化版：检查内容重叠
-                overlap = len(set(new_entry.content) & set(existing.content))
-                if overlap > len(new_entry.content) * self.similarity_threshold:
+                # 词级 Jaccard 相似度判断
+                new_words = set(new_entry.content.split())
+                existing_words = set(existing.content.split())
+                if not new_words:
+                    continue
+                overlap = len(new_words & existing_words)
+                if overlap > len(new_words) * self.similarity_threshold:
                     # 合并内容，更新热度
                     existing.content += f"\n{new_entry.content}"
                     existing.heat = max(existing.heat, new_entry.heat)

@@ -6,12 +6,18 @@
 import sqlite3
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict
 
+import os as _os
 WORKSPACE = Path(__file__).resolve().parent.parent.parent
 INDEX_DIR = WORKSPACE / ".workbuddy" / "index"
 DB_PATH = INDEX_DIR / "search_index.db"
-FAISS_PATH = INDEX_DIR / "vectors.faiss"
+_FAISS_PATH = INDEX_DIR / "vectors.faiss"
+if str(_FAISS_PATH).isascii():
+    FAISS_PATH = _FAISS_PATH
+else:
+    # faiss's C fopen() can't handle non-ASCII paths on Windows
+    FAISS_PATH = Path(_os.environ.get("TEMP", _os.environ.get("TMPDIR", "/tmp"))) / "km_vectors.faiss"
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -95,7 +101,6 @@ def search_keyword(query: str, top_k: int = 20) -> List[Dict]:
     conn = _get_db()
     try:
         rows = conn.execute("SELECT rowid, path, title, content_preview, file_type FROM documents").fetchall()
-        row_map = {r[0]: {"path": r[1], "title": r[2], "snippet": r[3], "type": r[4]} for r in rows}
         for rowid, path, title, preview, file_type in rows:
             if query_lower in (title + preview).lower():
                 results.append({
@@ -140,17 +145,27 @@ def search(query: str, top_k: int = 10) -> List[Dict]:
 
 
 def build_faiss_index() -> int:
-    """从 SQLite 构建 FAISS 向量索引（使用 rowid 作为 ID）"""
+    """从磁盘全文重建 FAISS 向量索引（使用 rowid 作为 ID）"""
     if not HAS_VECTOR:
         return 0
     model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
     conn = _get_db()
-    rows = conn.execute("SELECT rowid, content_preview FROM documents").fetchall()
-    conn.close()
+    try:
+        rows = conn.execute("SELECT rowid, path FROM documents").fetchall()
+    finally:
+        conn.close()
     if not rows:
         return 0
-    rowids = [r[0] for r in rows]
-    texts = [r[1] for r in rows]
+    rowids = []
+    texts = []
+    for rowid, path in rows:
+        full_path = WORKSPACE / path
+        try:
+            text = full_path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            text = ""
+        rowids.append(rowid)
+        texts.append(text)
     embeddings = model.encode(texts, show_progress_bar=False)
     dim = embeddings.shape[1]
     base_index = faiss.IndexFlatL2(dim)

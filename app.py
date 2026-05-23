@@ -4,7 +4,6 @@
 """
 
 import sys
-import os
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent

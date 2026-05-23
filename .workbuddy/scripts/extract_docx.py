@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import sys
 import io
 from pathlib import Path
-from docx import Document
+from datetime import datetime
+
+try:
+    from docx import Document
+except ImportError:
+    Document = None
 
 WORKSPACE = Path(__file__).resolve().parent.parent.parent  # 从 .workbuddy/scripts/ 向上三级
 
 
 def extract_docx(file_path):
     """Extract text from docx file"""
+    if Document is None:
+        return "Error: python-docx not installed. Run: pip install python-docx"
     try:
         doc = Document(file_path)
         text = []
@@ -50,7 +56,7 @@ def main():
             output = WORKSPACE / "05-知识沉淀" / "知识结晶" / f"{name}_提取.md"
             with open(output, "w", encoding="utf-8") as wf:
                 wf.write(
-                    f"# {name}\n\n> Extract time: 2026-04-10\n\n---\n\n{content[:3000]}"
+                    f"# {name}\n\n> Extract time: {datetime.now().strftime('%Y-%m-%d')}\n\n---\n\n{content[:3000]}"
                 )
             print(f"Saved: {output.name}")
         else:

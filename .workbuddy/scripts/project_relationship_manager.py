@@ -11,13 +11,12 @@ Project-File Multi-dimensional Relationship Manager
 4. 多维度项目视图
 """
 
-import json
 import re
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
-from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Set, Optional
+from dataclasses import dataclass, field
 from enum import Enum
+from collections import deque
 
 
 class FileRelationType(Enum):
@@ -55,7 +54,7 @@ class FileSignature:
     file_type: str = ""
     quality_level: str = ""
     version_info: str = ""
-    
+
     def to_dict(self):
         return {
             "file_path": self.file_path,
@@ -83,7 +82,7 @@ class ProjectCandidate:
     cohesion_score: float = 0.0              # 内聚度评分
     boundary_clarity: float = 0.0            # 边界清晰度
     confidence: float = 0.0                   # 置信度
-    
+
     def to_dict(self):
         return {
             "candidate_id": self.candidate_id,
@@ -108,7 +107,7 @@ class CrossProjectRelation:
     shared_files: List[str] = field(default_factory=list)
     shared_entities: Set[str] = field(default_factory=set)
     relation_strength: float = 0.0
-    
+
     def to_dict(self):
         return {
             "relation_id": self.relation_id,
@@ -133,7 +132,7 @@ class ProjectReorganizationProposal:
     risks: List[str] = field(default_factory=list)
     confidence: float = 0.0
     requires_confirmation: bool = True
-    
+
     def to_dict(self):
         return {
             "proposal_id": self.proposal_id,
@@ -150,46 +149,46 @@ class ProjectReorganizationProposal:
 
 class ProjectRelationshipManager:
     """项目关系管理器"""
-    
+
     def __init__(self, base_path: str):
         self.base_path = Path(base_path)
         self.files: Dict[str, FileSignature] = {}
         self.projects: Dict[str, ProjectCandidate] = {}
         self.cross_relations: List[CrossProjectRelation] = []
         self.reorganization_history: List[Dict] = []
-        
+
     # ═══════════════════════════════════════════════════════════════
     # 第一阶段：深度分析文件特征
     # ═══════════════════════════════════════════════════════════════
-    
+
     def analyze_file_signature(self, file_path: str, content: str) -> FileSignature:
         """分析文件特征签名"""
         import hashlib
-        
+
         file_name = Path(file_path).name
         content_hash = hashlib.md5(content.encode()).hexdigest()[:16]
-        
+
         # 提取实体
         entities = self._extract_entities(content)
-        
+
         # 提取概念
         concepts = self._extract_concepts(content)
-        
+
         # 提取主题关键词
         topics = self._extract_topics(content)
-        
+
         # 提取相关人员
         people = self._extract_people(content)
-        
+
         # 识别文件类型
         file_type = self._classify_file_type(content, file_name)
-        
+
         # 评估质量等级
         quality = self._assess_quality(content, file_name)
-        
+
         # 提取版本信息
         version = self._extract_version(file_name, content)
-        
+
         return FileSignature(
             file_path=file_path,
             file_name=file_name,
@@ -202,11 +201,11 @@ class ProjectRelationshipManager:
             quality_level=quality,
             version_info=version
         )
-    
+
     def _extract_entities(self, content: str) -> Set[str]:
         """提取实体（主播名、指标、系统等）"""
         entities = set()
-        
+
         # 主播名模式
         anchor_patterns = [
             r'主播[：:]?\s*([\u4e00-\u9fa5A-Za-z]+)',
@@ -216,7 +215,7 @@ class ProjectRelationshipManager:
         for pattern in anchor_patterns:
             matches = re.findall(pattern, content)
             entities.update([f"主播:{m}" for m in matches])
-        
+
         # 指标模式
         metric_patterns = [
             r'(钻石|收益|收入|流水)\s*[：:]?\s*(\d+)',
@@ -226,7 +225,7 @@ class ProjectRelationshipManager:
             matches = re.findall(pattern, content)
             for m in matches:
                 entities.add(f"指标:{m[0]}={m[1]}")
-        
+
         # 系统/工具模式
         system_patterns = [
             r'(风控|审核|数据分析|日报|Prompt|提示词)系统',
@@ -235,29 +234,29 @@ class ProjectRelationshipManager:
         for pattern in system_patterns:
             matches = re.findall(pattern, content)
             entities.update([f"系统:{m}" for m in matches])
-        
+
         return entities
-    
+
     def _extract_concepts(self, content: str) -> Set[str]:
         """提取核心概念"""
         concepts = set()
-        
+
         concept_keywords = [
             "零幻觉", "跨AI", "批量处理", "实时", "自动化",
             "agen", "gen", "风控", "审核", "数据分析",
             "Prompt工程", "提示词", "运营", "主播管理"
         ]
-        
+
         for keyword in concept_keywords:
             if keyword in content:
                 concepts.add(keyword)
-        
+
         return concepts
-    
+
     def _extract_topics(self, content: str) -> Set[str]:
         """提取主题关键词"""
         topics = set()
-        
+
         # 基于内容长度和关键词密度提取主题
         topic_indicators = {
             "风控审核": ["风控", "审核", "风险", "违规", "检测"],
@@ -267,30 +266,30 @@ class ProjectRelationshipManager:
             "会议记录": ["会议", "讨论", "决策", "纪要"],
             "项目文档": ["项目", "需求", "设计", "方案"]
         }
-        
+
         for topic, indicators in topic_indicators.items():
             score = sum(1 for ind in indicators if ind in content)
             if score >= 2:
                 topics.add(topic)
-        
+
         return topics
-    
+
     def _extract_people(self, content: str) -> Set[str]:
         """提取相关人员"""
         people = set()
-        
+
         # 常见人名模式
         name_patterns = [
             r'([\u4e00-\u9fa5]{2,3})(?:老师|师傅|经理|主管|总监)',
             r'(?:汇报人|负责人|主讲)[：:]\s*([\u4e00-\u9fa5]{2,3})',
         ]
-        
+
         for pattern in name_patterns:
             matches = re.findall(pattern, content)
             people.update(matches)
-        
+
         return people
-    
+
     def _classify_file_type(self, content: str, file_name: str) -> str:
         """分类文件类型"""
         if "Prompt" in content or "提示词" in content:
@@ -309,7 +308,7 @@ class ProjectRelationshipManager:
             return "文本文档"
         else:
             return "其他"
-    
+
     def _assess_quality(self, content: str, file_name: str) -> str:
         """评估质量等级"""
         if "终极版" in file_name or "已验证" in file_name:
@@ -320,7 +319,7 @@ class ProjectRelationshipManager:
             return "迭代版本"
         else:
             return "标准"
-    
+
     def _extract_version(self, file_name: str, content: str) -> str:
         """提取版本信息"""
         version_patterns = [
@@ -328,115 +327,115 @@ class ProjectRelationshipManager:
             r'版本[：:]?\s*(\d+\.?\d*)',
             r'(\d+\.\d+)版',
         ]
-        
+
         for pattern in version_patterns:
             match = re.search(pattern, file_name + " " + content)
             if match:
                 return f"V{match.group(1)}"
-        
+
         if "终极版" in file_name:
             return "final"
-        
+
         return "unknown"
-    
+
     # ═══════════════════════════════════════════════════════════════
     # 第二阶段：项目边界识别
     # ═══════════════════════════════════════════════════════════════
-    
+
     def identify_project_boundaries(self, files: List[FileSignature]) -> List[ProjectCandidate]:
         """识别项目边界"""
         print("🔍 正在分析项目边界...")
-        
+
         # 1. 基于实体重叠度聚类
         entity_groups = self._cluster_by_entity_overlap(files)
-        
+
         # 2. 基于主题相似度聚类
         topic_groups = self._cluster_by_topic_similarity(files)
-        
+
         # 3. 基于文件命名模式聚类
         naming_groups = self._cluster_by_naming_pattern(files)
-        
+
         # 4. 合并聚类结果
         merged_projects = self._merge_clusters(entity_groups, topic_groups, naming_groups)
-        
+
         # 5. 评估每个候选项目的质量
         for project in merged_projects:
             self._assess_project_quality(project)
-        
+
         return merged_projects
-    
+
     def _cluster_by_entity_overlap(self, files: List[FileSignature]) -> List[Set[str]]:
         """基于实体重叠度聚类"""
         from collections import defaultdict
-        
+
         entity_to_files = defaultdict(set)
         for f in files:
             for entity in f.entity_set:
                 entity_to_files[entity].add(f.file_path)
-        
+
         # 使用并查集找到连通分量
         parent = {f.file_path: f.file_path for f in files}
-        
+
         def find(x):
             if parent[x] != x:
                 parent[x] = find(parent[x])
             return parent[x]
-        
+
         def union(x, y):
             px, py = find(x), find(y)
             if px != py:
                 parent[px] = py
-        
+
         # 如果两个文件共享实体，则合并
         for entity, file_set in entity_to_files.items():
             if len(file_set) > 1:
                 file_list = list(file_set)
                 for i in range(1, len(file_list)):
                     union(file_list[0], file_list[i])
-        
+
         # 收集聚类结果
         clusters = defaultdict(set)
         for f in files:
             clusters[find(f.file_path)].add(f.file_path)
-        
+
         return list(clusters.values())
-    
+
     def _cluster_by_topic_similarity(self, files: List[FileSignature]) -> List[Set[str]]:
         """基于主题相似度聚类"""
         clusters = []
         used = set()
-        
+
         for f in files:
             if f.file_path in used:
                 continue
-            
+
             cluster = {f.file_path}
             used.add(f.file_path)
-            
+
             for other in files:
                 if other.file_path in used:
                     continue
-                
+
                 # 计算主题重叠度
                 overlap = len(f.topic_keywords & other.topic_keywords)
                 if overlap >= 1:  # 至少一个共同主题
                     cluster.add(other.file_path)
                     used.add(other.file_path)
-            
+
             clusters.append(cluster)
-        
+
         return clusters
-    
+
     def _cluster_by_naming_pattern(self, files: List[FileSignature]) -> List[Set[str]]:
         """基于命名模式聚类"""
         from collections import defaultdict
-        
+
         pattern_groups = defaultdict(set)
-        
+
         for f in files:
             # 提取命名前缀
             name = Path(f.file_path).stem
-            
+
             # 寻找共同前缀
             for prefix_len in range(min(10, len(name)), 2, -1):
                 prefix = name[:prefix_len]
@@ -445,9 +444,9 @@ class ProjectRelationshipManager:
                     break
             else:
                 pattern_groups["other"].add(f.file_path)
-        
+
         return list(pattern_groups.values())
-    
+
     def _merge_clusters(self, *cluster_lists) -> List[ProjectCandidate]:
         """合并多种聚类结果"""
         # 简化的合并策略：取并集
@@ -455,10 +454,10 @@ class ProjectRelationshipManager:
         for clusters in cluster_lists:
             for cluster in clusters:
                 all_files.update(cluster)
-        
+
         # 构建文件邻接图
         adjacency = {f: set() for f in all_files}
-        
+
         for clusters in cluster_lists:
             for cluster in clusters:
                 file_list = list(cluster)
@@ -466,28 +465,28 @@ class ProjectRelationshipManager:
                     for f2 in file_list[i+1:]:
                         adjacency[f1].add(f2)
                         adjacency[f2].add(f1)
-        
+
         # 找到连通分量作为项目候选
         visited = set()
         projects = []
         project_id = 0
-        
+
         for file_path in all_files:
             if file_path in visited:
                 continue
-            
+
             # BFS找到连通分量
             component = set()
-            queue = [file_path]
-            
+            queue = deque([file_path])
+
             while queue:
-                current = queue.pop(0)
+                current = queue.popleft()
                 if current in visited:
                     continue
                 visited.add(current)
                 component.add(current)
                 queue.extend(adjacency[current] - visited)
-            
+
             # 创建项目候选
             project_id += 1
             project = ProjectCandidate(
@@ -496,14 +495,14 @@ class ProjectRelationshipManager:
                 files=list(component)
             )
             projects.append(project)
-        
+
         return projects
-    
+
     def _generate_project_name(self, file_paths: Set[str]) -> str:
         """生成项目名称"""
         # 基于共同实体或主题生成名称
         return f"项目_{len(file_paths)}个文件"
-    
+
     def _assess_project_quality(self, project: ProjectCandidate):
         """评估项目质量"""
         # 计算内聚度
@@ -512,30 +511,30 @@ class ProjectRelationshipManager:
             project.boundary_clarity = 1.0
             project.project_type = ProjectType.DISPERSED
             return
-        
+
         # 收集所有实体和概念
         all_entities = set()
         all_concepts = set()
-        
+
         for file_path in project.files:
             if file_path in self.files:
                 f = self.files[file_path]
                 all_entities.update(f.entity_set)
                 all_concepts.update(f.concept_set)
-        
+
         project.core_entities = all_entities
         project.core_concepts = all_concepts
-        
+
         # 计算内聚度（共享实体比例）
         if all_entities:
             shared_count = 0
             for entity in all_entities:
-                count = sum(1 for f in project.files 
+                count = sum(1 for f in project.files
                           if f in self.files and entity in self.files[f].entity_set)
                 if count > 1:
                     shared_count += 1
             project.cohesion_score = shared_count / len(all_entities)
-        
+
         # 判断项目类型
         if len(project.files) >= 3 and project.cohesion_score > 0.3:
             project.project_type = ProjectType.INDEPENDENT
@@ -543,61 +542,61 @@ class ProjectRelationshipManager:
             project.project_type = ProjectType.DISPERSED
         else:
             project.project_type = ProjectType.EMERGING
-        
+
         project.confidence = project.cohesion_score * 0.5 + 0.5
-    
+
     # ═══════════════════════════════════════════════════════════════
     # 第三阶段：发现跨项目关联
     # ═══════════════════════════════════════════════════════════════
-    
+
     def discover_cross_project_relations(self) -> List[CrossProjectRelation]:
         """发现跨项目关联"""
         print("🔗 正在发现跨项目关联...")
-        
+
         relations = []
         project_list = list(self.projects.values())
-        
+
         for i, proj1 in enumerate(project_list):
             for proj2 in project_list[i+1:]:
                 relation = self._analyze_project_relation(proj1, proj2)
                 if relation:
                     relations.append(relation)
-        
+
         self.cross_relations = relations
         return relations
-    
-    def _analyze_project_relation(self, proj1: ProjectCandidate, 
+
+    def _analyze_project_relation(self, proj1: ProjectCandidate,
                                    proj2: ProjectCandidate) -> Optional[CrossProjectRelation]:
         """分析两个项目之间的关系"""
-        
+
         # 检查共享文件
         shared_files = set(proj1.files) & set(proj2.files)
-        
+
         # 检查共享实体
         shared_entities = proj1.core_entities & proj2.core_entities
-        
+
         # 检查共享概念
         shared_concepts = proj1.core_concepts & proj2.core_concepts
-        
+
         # 计算关系强度
         strength = 0.0
-        
+
         if shared_files:
             strength += len(shared_files) * 0.3
-        
+
         if shared_entities:
             strength += len(shared_entities) * 0.1
-        
+
         if shared_concepts:
             strength += len(shared_concepts) * 0.1
-        
+
         # 检查命名相似度
         name_similarity = self._calculate_name_similarity(proj1.name, proj2.name)
         strength += name_similarity * 0.2
-        
+
         if strength < 0.2:
             return None
-        
+
         # 确定关系类型
         if shared_files:
             relation_type = FileRelationType.CROSS_PROJECT
@@ -607,7 +606,7 @@ class ProjectRelationshipManager:
             relation_type = FileRelationType.SIMILAR
         else:
             relation_type = FileRelationType.TEMPORAL
-        
+
         return CrossProjectRelation(
             relation_id=f"rel_{proj1.candidate_id}_{proj2.candidate_id}",
             source_project=proj1.candidate_id,
@@ -617,58 +616,58 @@ class ProjectRelationshipManager:
             shared_entities=shared_entities,
             relation_strength=min(strength, 1.0)
         )
-    
+
     def _calculate_name_similarity(self, name1: str, name2: str) -> float:
         """计算名称相似度"""
         # 简单的字符重叠度
         chars1 = set(name1)
         chars2 = set(name2)
-        
+
         if not chars1 or not chars2:
             return 0.0
-        
+
         intersection = chars1 & chars2
         union = chars1 | chars2
-        
+
         return len(intersection) / len(union)
-    
+
     # ═══════════════════════════════════════════════════════════════
     # 第四阶段：项目重组建议
     # ═══════════════════════════════════════════════════════════════
-    
+
     def generate_reorganization_proposals(self) -> List[ProjectReorganizationProposal]:
         """生成项目重组建议"""
         print("💡 正在生成重组建议...")
-        
+
         proposals = []
-        
+
         # 1. 合并建议：高度关联的小项目
         merge_proposals = self._suggest_merges()
         proposals.extend(merge_proposals)
-        
+
         # 2. 拆分建议：内聚度低的大项目
         split_proposals = self._suggest_splits()
         proposals.extend(split_proposals)
-        
+
         # 3. 提取建议：跨项目共享文件
         extract_proposals = self._suggest_extractions()
         proposals.extend(extract_proposals)
-        
+
         # 4. 新建项目建议：分散文件组合
         create_proposals = self._suggest_new_projects()
         proposals.extend(create_proposals)
-        
+
         return proposals
-    
+
     def _suggest_merges(self) -> List[ProjectReorganizationProposal]:
         """建议合并高度关联的项目"""
         proposals = []
-        
+
         for relation in self.cross_relations:
             if relation.relation_strength > 0.7:
                 proj1 = self.projects.get(relation.source_project)
                 proj2 = self.projects.get(relation.target_project)
-                
+
                 if proj1 and proj2:
                     proposal = ProjectReorganizationProposal(
                         proposal_id=f"merge_{relation.relation_id}",
@@ -692,18 +691,18 @@ class ProjectRelationshipManager:
                         requires_confirmation=True
                     )
                     proposals.append(proposal)
-        
+
         return proposals
-    
+
     def _suggest_splits(self) -> List[ProjectReorganizationProposal]:
         """建议拆分内聚度低的大项目"""
         proposals = []
-        
+
         for project in self.projects.values():
             if len(project.files) > 5 and project.cohesion_score < 0.3:
                 # 建议拆分为子项目
                 sub_groups = self._identify_sub_groups(project)
-                
+
                 if len(sub_groups) > 1:
                     proposal = ProjectReorganizationProposal(
                         proposal_id=f"split_{project.candidate_id}",
@@ -730,55 +729,55 @@ class ProjectRelationshipManager:
                         requires_confirmation=True
                     )
                     proposals.append(proposal)
-        
+
         return proposals
-    
+
     def _identify_sub_groups(self, project: ProjectCandidate) -> List[Set[str]]:
         """识别项目内的子组"""
         # 基于实体相似度重新聚类
         files = [self.files.get(f) for f in project.files if f in self.files]
         files = [f for f in files if f]
-        
+
         if len(files) <= 1:
             return [{f.file_path} for f in files]
-        
+
         # 使用简单的贪心聚类
         groups = []
         used = set()
-        
+
         for f in files:
             if f.file_path in used:
                 continue
-            
+
             group = {f.file_path}
             used.add(f.file_path)
-            
+
             for other in files:
                 if other.file_path in used:
                     continue
-                
+
                 # 计算实体相似度
                 overlap = len(f.entity_set & other.entity_set)
                 if overlap >= 2:  # 至少2个共同实体
                     group.add(other.file_path)
                     used.add(other.file_path)
-            
+
             groups.append(group)
-        
+
         return groups
-    
+
     def _suggest_extractions(self) -> List[ProjectReorganizationProposal]:
         """建议提取共享组件"""
         proposals = []
-        
+
         # 找出在多个项目中出现的文件
         file_project_count = {}
         for project in self.projects.values():
             for f in project.files:
                 file_project_count[f] = file_project_count.get(f, 0) + 1
-        
+
         shared_files = {f: count for f, count in file_project_count.items() if count > 1}
-        
+
         if shared_files:
             proposal = ProjectReorganizationProposal(
                 proposal_id="extract_shared",
@@ -804,27 +803,27 @@ class ProjectRelationshipManager:
                 requires_confirmation=True
             )
             proposals.append(proposal)
-        
+
         return proposals
-    
+
     def _suggest_new_projects(self) -> List[ProjectReorganizationProposal]:
         """建议从分散文件创建新项目"""
         proposals = []
-        
+
         # 找出分散的文件（不属于任何强内聚项目）
         dispersed_files = []
         for project in self.projects.values():
             if project.project_type == ProjectType.DISPERSED:
                 dispersed_files.extend(project.files)
-        
+
         if len(dispersed_files) >= 3:
             # 尝试重新聚类
             file_sigs = [self.files.get(f) for f in dispersed_files if f in self.files]
             file_sigs = [f for f in file_sigs if f]
-            
+
             if file_sigs:
                 new_clusters = self._cluster_by_entity_overlap(file_sigs)
-                
+
                 for i, cluster in enumerate(new_clusters):
                     if len(cluster) >= 3:
                         proposal = ProjectReorganizationProposal(
@@ -851,17 +850,17 @@ class ProjectRelationshipManager:
                             requires_confirmation=True
                         )
                         proposals.append(proposal)
-        
+
         return proposals
-    
+
     # ═══════════════════════════════════════════════════════════════
     # 第五阶段：交互式确认
     # ═══════════════════════════════════════════════════════════════
-    
+
     def generate_interactive_questions(self) -> List[Dict]:
         """生成交互式确认问题"""
         questions = []
-        
+
         # 1. 询问项目边界问题
         for project in self.projects.values():
             if project.project_type == ProjectType.EMERGING:
@@ -880,13 +879,13 @@ class ProjectRelationshipManager:
                         "entities": list(project.core_entities)[:5]
                     }
                 })
-        
+
         # 2. 询问跨项目关联
         for relation in self.cross_relations:
             if relation.relation_strength > 0.5:
                 proj1 = self.projects.get(relation.source_project)
                 proj2 = self.projects.get(relation.target_project)
-                
+
                 if proj1 and proj2:
                     questions.append({
                         "type": "cross_project_relation",
@@ -903,13 +902,13 @@ class ProjectRelationshipManager:
                             "relation_type": relation.relation_type.value
                         }
                     })
-        
+
         return questions
-    
+
     # ═══════════════════════════════════════════════════════════════
     # 输出和报告
     # ═══════════════════════════════════════════════════════════════
-    
+
     def generate_comprehensive_report(self) -> Dict:
         """生成综合分析报告"""
         return {
@@ -941,12 +940,12 @@ if __name__ == "__main__":
     manager = ProjectRelationshipManager(
         base_path=str(Path(__file__).resolve().parent.parent.parent)
     )
-    
+
     print("=" * 60)
     print("项目-文件多维关系管理系统")
     print("=" * 60)
     print()
-    
+
     # 这里可以添加实际文件分析代码
     print("✅ 系统初始化完成")
     print("📖 使用说明：")

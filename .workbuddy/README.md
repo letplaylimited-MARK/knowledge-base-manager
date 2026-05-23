@@ -25,10 +25,7 @@
 │
 ├── 流程/                ← 工作流文档
 │   ├── 任务验证标准.md
-│   ├── 交接文档模板.md
-│   ├── 思绪整理系统.md
-│   ├── 交接系统.md
-│   └── 智能分流引擎.md
+│   └── 交接文档模板.md
 │
 ├── 记忆层/              ← 三层记忆结构
 │   ├── MEMORY.md
@@ -41,9 +38,9 @@
 │   ├── update_index.py
 │   ├── search_content.py
 │   ├── file_processing_pipeline.py
-│   └── ... (共14个脚本)
+│   └── ... (共24个脚本)
 │
-├── 脚本/                ← 额外脚本
+├── templates/           ← Web UI 模板
 │   └── backup.py
 │
 ├── FRAMEWORK.md         ← 框架说明

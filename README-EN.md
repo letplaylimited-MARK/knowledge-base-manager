@@ -1,6 +1,6 @@
 # Universal Knowledge Base Framework V2.0
 
-> Version: V2.0 | Updated: 2026-04-21
+> Version: V2.0 | Updated: 2026-05-23
 
 ---
 
@@ -42,7 +42,7 @@ A universal knowledge management framework for **any industry/project**. Support
 | Knowledge Graph | wiki/ directory |
 | Long-term Memory | .workbuddy/记忆层/ |
 | AI Collaboration | .workbuddy/AI协作体系/ |
-| Automation Scripts | 18 Python scripts |
+| Automation Scripts | 24 Python scripts |
 
 ## Requirements
 

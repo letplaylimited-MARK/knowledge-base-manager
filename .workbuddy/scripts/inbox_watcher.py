@@ -2,8 +2,6 @@
 # New File Inbox Watcher
 # Monitors 01-收件箱/ for new files and generates intake recommend
 
-import os
-import json
 import hashlib
 import sys
 from datetime import datetime
@@ -53,7 +51,7 @@ def read_file_preview(file_path, max_chars=500):
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read(max_chars)
-    except:
+    except (OSError, UnicodeDecodeError):
         return ""
 
 

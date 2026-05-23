@@ -5,10 +5,8 @@
 # 3. Backup database
 # 4. Detect changes
 
-import os
 import subprocess
 import json
-import shutil
 import sys
 from datetime import datetime
 from pathlib import Path

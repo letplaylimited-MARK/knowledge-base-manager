@@ -1,6 +1,6 @@
 # API文档
 
-> 版本：V2.0 | 更新：2026-04-21
+> 版本：V2.0 | 更新：2026-05-23
 
 ---
 
@@ -41,7 +41,7 @@ python .workbuddy/scripts/extract_docx.py <文件> [选项]
 ### backup.py
 
 ```bash
-python .workbuddy/脚本/backup.py [选项]
+python .workbuddy/scripts/backup.py [选项]
 ```
 
 **选项**:

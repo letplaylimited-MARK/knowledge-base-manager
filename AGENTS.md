@@ -169,7 +169,7 @@ python .workbuddy/scripts/search_content.py "关键词"
 ### 系统维护
 ```
 # 备份
-python .workbuddy/脚本/backup.py
+python .workbuddy/scripts/backup.py
 
 # 维护任务
 python .workbuddy/scripts/maintenance_task.py
@@ -189,9 +189,11 @@ python .workbuddy/scripts/maintenance_task.py
 | 您的需求 | 自动执行 |
 |----------|----------|
 | "找XX" / "哪个文件" | 定位+返回路径 |
-| "搜索XX" / "查找XX" | search_content.py检索 |
-| "更新索引" | 运行update_index.py |
-| "执行任务" / "帮我做" | 加载工作流+执行 |
+| "搜索XX" / "查找XX" | search_content.py / vector_search.py 检索 |
+| "更新索引" | 运行 update_index.py |
+| "智能分类" / "自动整理" | smart_router.py / auto_organizer.py |
+| "执行任务" / "帮我做" | 加载工作流+执行 — workflow_engine.py / agent_orchestrator.py |
+| "AI对话" / "调用模型" | model_adapter.py 多模型适配 |
 | "验证结果" | 加载验证指南+检查 |
 | "系统状态" | 查看目录结构+脚本列表 |
 
@@ -207,9 +209,9 @@ python .workbuddy/scripts/maintenance_task.py
 
 ### 最后更新时间
 ```
-知识索引: 2026-05-17
-系统结构: 2026-05-17
-AI配置: 2026-05-17
+知识索引: 2026-05-23
+系统结构: 2026-05-23
+AI配置: 2026-05-23
 ```
 
 ---

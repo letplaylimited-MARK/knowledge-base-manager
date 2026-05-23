@@ -270,7 +270,7 @@ supports_embedding: false
 - `.workbuddy/AI协作体系/AI协调协作系统.md` - 详细的AI协作系统说明
 - `.workbuddy/AI协作体系/智能体池/智能体定义.md` - 智能体定义和使用说明
 - `.workbuddy/AI协作体系/项目模板/项目配置.md` - 项目级智能体配置示例
-- `.workbuddy/模型配置/模型配置说明.md` - 模型配置系统说明
+- `.workbuddy/AI协作体系/模型配置/模型配置说明.md` - 模型配置系统说明
 
 ## ✅ 验证您的配置
 

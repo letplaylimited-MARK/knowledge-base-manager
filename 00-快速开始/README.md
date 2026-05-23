@@ -50,7 +50,7 @@ python .workbuddy/scripts/search_content.py "您的查询关键词"
 ### 管理知识
 ```bash
 # 备份知识库
-python .workbuddy/脚本/backup.py
+python .workbuddy/scripts/backup.py
 
 # 系统维护
 python .workbuddy/scripts/maintenance_task.py

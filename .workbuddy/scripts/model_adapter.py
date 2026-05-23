@@ -1,15 +1,18 @@
 import os
-import json
 from pathlib import Path
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "AI协作体系" / "模型配置"
 
 
 class ModelAdapter:
-    def __init__(self, config_dir: Path = CONFIG_DIR):
+    def __init__(self, config_dir: Path = CONFIG_DIR, sandbox: bool | None = None):
         self.models: dict[str, dict] = {}
         self._clients: dict[str, object] = {}
         self._load_configs(config_dir)
+        if sandbox is None:
+            sandbox = not any(os.environ.get(k) for k in
+                               ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "ZHIPU_API_KEY", "YI_API_KEY"])
+        self._sandbox = sandbox
 
     def _load_configs(self, config_dir: Path):
         import yaml
@@ -19,17 +22,19 @@ class ModelAdapter:
             try:
                 with open(f, encoding="utf-8") as fh:
                     cfg = yaml.safe_load(fh)
-                key = cfg.get("model_name", f.stem).lower().replace(" ", "-")
+                key = f.stem.lower()
                 self.models[key] = cfg
             except Exception:
                 pass
 
     def _get_client(self, model_key: str):
+        if model_key not in self.models:
+            raise ValueError(f"Unknown model: {model_key}")
+        if self._sandbox:
+            return None
         if model_key in self._clients:
             return self._clients[model_key]
-        cfg = self.models.get(model_key)
-        if not cfg:
-            raise ValueError(f"Unknown model: {model_key}")
+        cfg = self.models[model_key]
         provider = cfg.get("provider", "")
         api_key_var = cfg.get("api_key", "").strip("${} ")
         api_key = os.environ.get(api_key_var)
@@ -55,6 +60,9 @@ class ModelAdapter:
         cfg = self.models.get(model_key)
         if not cfg:
             raise ValueError(f"Unknown model: {model_key}")
+        if self._sandbox:
+            last = messages[-1]["content"] if messages else ""
+            return f"[SANDBOX] {model_key} responded to: {last[:80]}"
         client = self._get_client(model_key)
         provider = cfg.get("provider", "")
         model_version = cfg.get("model_version", "")
@@ -84,6 +92,10 @@ class ModelAdapter:
         return ""
 
     def embed(self, text: str, model_key: str = None) -> list[float]:
+        if self._sandbox:
+            import random as _r
+            _r.seed(hash(text) % (2**31))
+            return [_r.random() for _ in range(384)]
         if not model_key:
             for k, v in self.models.items():
                 if v.get("supports_embedding"):

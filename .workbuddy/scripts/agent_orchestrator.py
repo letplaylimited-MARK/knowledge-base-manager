@@ -17,34 +17,47 @@ class Agent:
     instructions: str
 
 
+_TEMPLATE_MARKERS = ["智能体名称", "智能体类型", "使用的AI模型名称", "model-identifier", "model-provider"]
+
+
 class AgentLoader:
     def __init__(self):
         self._pool_dir = AGENT_POOL_DIR
 
     def load(self, name: str) -> Agent | None:
-        for ext in [".md"]:
-            file_path = self._pool_dir / f"{name}{ext}"
-            if file_path.exists():
-                return self._parse(file_path)
-        for f in self._pool_dir.glob("*.md"):
-            if f.stem == name:
-                return self._parse(f)
+        for f in sorted(self._pool_dir.glob("*.md")):
+            for agent in self._parse_all(f):
+                if agent.name == name or agent.role == name or f.stem == name:
+                    return agent
         return None
 
-    def _parse(self, file_path: Path) -> Agent | None:
+    def list_agents(self) -> list[Agent]:
+        agents = []
+        for f in sorted(self._pool_dir.glob("*.md")):
+            agents.extend(self._parse_all(f))
+        return agents
+
+    def _parse_all(self, file_path: Path) -> list[Agent]:
         try:
             text = file_path.read_text(encoding="utf-8")
         except Exception:
-            return None
-        name = self._extract(text, [r"agent_name[：:]\s*[\"']?([^\"'\s#]+)", r"名称[：:]\s*(.+)", r"name[：:]\s*(.+)"])
-        role = self._extract(text, [r"agent_type[：:]\s*[\"']?([^\"'\s#]+)", r"角色[：:]\s*(.+)", r"role[：:]\s*(.+)"])
-        model = self._extract(text, [r"model_name[：:]\s*[\"']?([^\"'\s#]+)", r"模型[：:]\s*(.+)", r"model[：:]\s*(.+)"])
-        return Agent(
-            name=name or file_path.stem,
-            role=role or "unknown",
-            model=model or "default",
-            instructions=text
-        )
+            return []
+        yaml_blocks = re.findall(r'```yaml\s*\n(.*?)```', text, re.DOTALL)
+        agents = []
+        for block in yaml_blocks:
+            if any(m in block for m in _TEMPLATE_MARKERS):
+                continue
+            name = self._extract(block, [r"agent_name[：:]\s*[\"']?([^\"'\s#]+)"])
+            role = self._extract(block, [r"agent_type[：:]\s*[\"']?([^\"'\s#]+)"])
+            model = self._extract(block, [r"model_name[：:]\s*[\"']?([^\"'\s#]+)"])
+            if name or role:
+                agents.append(Agent(
+                    name=name or file_path.stem,
+                    role=role or "unknown",
+                    model=model or "default",
+                    instructions=block,
+                ))
+        return agents
 
     def _extract(self, text: str, patterns: list[str]) -> str | None:
         for p in patterns:
@@ -57,8 +70,10 @@ class AgentLoader:
 class RoleLoader:
     def __init__(self):
         self._role_dir = ROLE_LIB_DIR
+        self._role_map = {"coordinator": "协调员", "scanner": "扫描员", "analyzer": "分析师", "recommender": "推荐员", "architect": "架构师", "observer": "观察员"}
 
     def load(self, role_name: str) -> str | None:
+        role_name = self._role_map.get(role_name, role_name)
         for ext in [".md", ".txt", ".yaml", ".yml"]:
             file_path = self._role_dir / f"{role_name}{ext}"
             if file_path.exists():
@@ -116,7 +131,7 @@ class AgentOrchestrator:
             if str(MEMORY_DIR) not in sys.path:
                 sys.path.insert(0, str(MEMORY_DIR))
             from memoryos import MemoryOS
-            mos = MemoryOS(storage_path=str(MEMORY_DIR / "data"))
+            mos = MemoryOS(storage_path=str(MEMORY_DIR / "memory_data"))
             mos.add_memory(
                 content=f"Agent {agent.name} execution result",
                 memory_type="episodic",

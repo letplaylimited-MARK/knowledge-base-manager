@@ -1,0 +1,230 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-04-10",
+  "description": "知识数据库标签本体库 - 定义标准标签体系",
+  
+  "dimensions": {
+    "business": {
+      "name": "业务维度",
+      "description": "按业务领域分类",
+      "tags": {
+        "#平台运营": {
+          "aliases": ["#平台", "#运营体系"],
+          "description": "平台整体运营规则和制度",
+          "sub_tags": ["#结算制度", "#提成规则", "#主播管理", "#师傅体系"]
+        },
+        "#结算制度": {
+          "aliases": ["#结算", "#兑换", "#档位"],
+          "description": "主播和师傅的结算规则",
+          "related_entities": ["钻石", "USD", "档位", "R5收入"]
+        },
+        "#师傅体系": {
+          "aliases": ["#师傅", "#师傅培训", "#师傅运营"],
+          "description": "师傅相关的培训、运营、管理",
+          "sub_tags": ["#新师傅扶持", "#师傅提成", "#师傅奖励"]
+        },
+        "#主播运营": {
+          "aliases": ["#主播", "#主播培训", "#主播诊断"],
+          "description": "主播相关的运营和诊断",
+          "sub_tags": ["#新人主播", "#主播结算", "#主播成长"]
+        },
+        "#风控审核": {
+          "aliases": ["#风控", "#内容审核", "#安全"],
+          "description": "聊天内容风控和审核",
+          "related_concepts": ["agen", "gen", "代理", "站外引流"]
+        },
+        "#数据分析": {
+          "aliases": ["#数据", "#分析", "#报表"],
+          "description": "数据分析和报告生成",
+          "sub_tags": ["#主播日报", "#数据可视化", "#诊断报告"]
+        }
+      }
+    },
+    
+    "function": {
+      "name": "功能维度",
+      "description": "按功能类型分类",
+      "tags": {
+        "#Prompt工程": {
+          "aliases": ["#Prompt", "#提示词", "#AI模板"],
+          "description": "AI提示词工程相关",
+          "sub_tags": ["#数据分析Prompt", "#风控Prompt", "#产品Prompt"]
+        },
+        "#会议纪要": {
+          "aliases": ["#会议", "#记录"],
+          "description": "会议记录和要点",
+          "related_fields": ["决策", "待办", "负责人"]
+        },
+        "#制度文档": {
+          "aliases": ["#制度", "#规则", "#SOP"],
+          "description": "平台制度和规则文档",
+          "sub_tags": ["#V3.2", "#多语言制度"]
+        },
+        "#培训资料": {
+          "aliases": ["#培训", "#教学", "#教程"],
+          "description": "培训相关的资料和视频",
+          "sub_tags": ["#视频教程", "#培训手册"]
+        },
+        "#项目资料": {
+          "aliases": ["#项目", "#专项"],
+          "description": "独立项目相关资料",
+          "sub_tags": ["#AI聊天话术", "#风控系统"]
+        }
+      }
+    },
+    
+    "technology": {
+      "name": "技术维度",
+      "description": "按技术类型分类",
+      "tags": {
+        "#HTML报告": {
+          "aliases": ["#HTML", "#可视化报告"],
+          "description": "HTML格式的数据报告",
+          "features": ["双击运行", "响应式", "图表"]
+        },
+        "#Excel处理": {
+          "aliases": ["#Excel", "#CSV", "#表格"],
+          "description": "Excel数据处理相关",
+          "use_cases": ["批量读取", "数据分析", "输出"]
+        },
+        "#跨AI兼容": {
+          "aliases": ["#跨AI", "#通用Prompt"],
+          "description": "可在多个AI平台运行的Prompt",
+          "supported_platforms": ["GPT", "Claude", "文心", "通义"]
+        },
+        "#零幻觉": {
+          "aliases": ["#温度0", "#精准输出"],
+          "description": "严格控制温度=0，无幻觉输出",
+          "requirements": ["温度=0", "无推导", "无估算"]
+        }
+      }
+    },
+    
+    "status": {
+      "name": "状态维度",
+      "description": "按处理状态分类",
+      "tags": {
+        "#已验证": {
+          "aliases": ["#验证通过", "#精品"],
+          "description": "已验证可用的资产",
+          "location": "03-提示词工程/01-已验证精品/"
+        },
+        "#待测试": {
+          "aliases": ["#测试版", "#Beta"],
+          "description": "待验证的草稿或测试版本",
+          "location": "03-提示词工程/02-草稿测试/"
+        },
+        "#已归档": {
+          "aliases": ["#归档", "#历史"],
+          "description": "已完成的或历史版本",
+          "location": "99-归档/"
+        }
+      }
+    }
+  },
+  
+  "entity_types": {
+    "PERSON": {
+      "name": "人物",
+      "attributes": ["角色", "所属团队", "联系方式"],
+      "examples": ["主播Sasa", "产品经理", "师傅"]
+    },
+    "ORG": {
+      "name": "组织",
+      "attributes": ["类型", "规模", "业务"],
+      "examples": ["运营团队", "代理团队"]
+    },
+    "PRODUCT": {
+      "name": "产品/功能",
+      "attributes": ["版本", "状态", "负责人"],
+      "examples": ["AI聊天话术系统", "风控审核系统"]
+    },
+    "METRIC": {
+      "name": "指标/数据",
+      "attributes": ["数值", "单位", "时间范围"],
+      "examples": ["R5收入", "14W线", "钻石", "SF系数"]
+    },
+    "RULE": {
+      "name": "规则/制度",
+      "attributes": ["版本", "生效日期", "适用范围"],
+      "examples": ["结算规则V3.2", "提成档位"]
+    },
+    "CONCEPT": {
+      "name": "概念/术语",
+      "attributes": ["定义", "相关概念", "使用场景"],
+      "examples": ["identity_confirmed", "结构闸门", "agen"]
+    }
+  },
+  
+  "relation_types": {
+    "DEPENDS_ON": {
+      "name": "依赖于",
+      "description": "A的实现依赖于B",
+      "weight": 0.9,
+      "examples": ["诊断报告 → 数据分析Prompt"]
+    },
+    "RELATED_TO": {
+      "name": "相关于",
+      "description": "A和B有业务或内容关联",
+      "weight": 0.7,
+      "examples": ["R5收入 ↔ 结算规则"]
+    },
+    "CONTAINS": {
+      "name": "包含",
+      "description": "A包含B作为组成部分",
+      "weight": 0.85,
+      "examples": ["产品经理手册 → 8个Prompt"]
+    },
+    "APPLIES_TO": {
+      "name": "应用于",
+      "description": "A应用于B场景",
+      "weight": 0.8,
+      "examples": ["风控审核 → 主播日报"]
+    },
+    "MENTIONS": {
+      "name": "提及",
+      "description": "A的内容中提及B",
+      "weight": 0.6,
+      "examples": ["会议记录 → 主播Sasa"]
+    },
+    "VERSION_OF": {
+      "name": "版本",
+      "description": "A是B的不同版本",
+      "weight": 0.95,
+      "examples": ["风控审核V2 → 风控审核V1"]
+    }
+  },
+  
+  "auto_tag_rules": [
+    {
+      "condition": "filename contains '风控' OR content contains 'agen' OR content contains 'gen'",
+      "tags": ["#风控审核"],
+      "confidence": 0.9
+    },
+    {
+      "condition": "filename contains '日报' OR filename contains '诊断'",
+      "tags": ["#数据分析", "#主播日报"],
+      "confidence": 0.85
+    },
+    {
+      "condition": "filename contains 'Prompt' OR filename contains '提示词' OR extension is '.md' with '系统提示词'",
+      "tags": ["#Prompt工程"],
+      "confidence": 0.9
+    },
+    {
+      "condition": "content contains '14W' OR content contains 'R5' OR content contains '钻石'",
+      "tags": ["#结算制度", "#平台运营"],
+      "confidence": 0.8
+    },
+    {
+      "condition": "filename contains '会议' OR filename contains '纪要'",
+      "tags": ["#会议纪要"],
+      "confidence": 0.9
+    },
+    {
+      "condition": "path contains '03-提示词工程/01-已验证精品'",
+      "tags": ["#已验证"],
+      "confidence": 1.0
+    }
+  ]
+}
