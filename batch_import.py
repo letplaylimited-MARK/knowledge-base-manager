@@ -26,7 +26,7 @@ class BatchImporter:
 
     def __init__(self, base_path: str):
         self.base_path = Path(base_path)
-        self.organizer = AutoOrganizer()
+        self.organizer = AutoOrganizer(self.base_path)
         self.analyzer = ContentAnalyzer()
         self.stats = {"total": 0, "success": 0, "skipped": 0, "failed": 0}
 
