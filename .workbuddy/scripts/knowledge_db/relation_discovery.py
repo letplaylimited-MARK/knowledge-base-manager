@@ -8,10 +8,13 @@
 import os
 import json
 import re
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 from collections import defaultdict
 from difflib import SequenceMatcher
+
+logger = logging.getLogger(__name__)
 
 class RelationDiscovery:
     """关联发现引擎"""
@@ -27,7 +30,7 @@ class RelationDiscovery:
             with open(path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"加载本体库失败: {e}")
+            logger.warning(f"加载本体库失败: {e}")
             return {}
     
     def _load_file_metadata(self, file_path: Path) -> Dict:
@@ -136,7 +139,8 @@ class RelationDiscovery:
             if target_file.suffix in ['.txt', '.md']:
                 with open(target_file, 'r', encoding='utf-8', errors='ignore') as f:
                     target_content = f.read(2000)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"读取目标文件失败: {e}")
             pass
         
         for candidate in candidate_files:
@@ -159,7 +163,8 @@ class RelationDiscovery:
                     with open(candidate, 'r', encoding='utf-8', errors='ignore') as f:
                         candidate_content = f.read(2000)
                     content_score = self._calculate_content_similarity(target_content, candidate_content)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"读取候选文件失败: {e}")
                 pass
             
             # 综合关联度
@@ -261,7 +266,7 @@ class RelationDiscovery:
         
         # 发现所有关联
         for i, file in enumerate(files):
-            print(f"处理文件 {i+1}/{len(files)}: {file.name}")
+            logger.info(f"处理文件 {i+1}/{len(files)}: {file.name}")
             relations = self.discover_relations(file, files)
             
             for rel in relations:
@@ -299,20 +304,19 @@ def main():
     example_file = Path(base_path) / "05-知识沉淀" / "wiki" / "sources" / "示例知识来源.md"
     
     if example_file.exists():
-        print(f"查找与 '{example_file.name}' 相关的文件...")
+        logger.info(f"查找与 '{example_file.name}' 相关的文件...")
         related = discovery.find_related_files(example_file, top_k=10)
         
-        print("\n相关文件:")
+        logger.info("相关文件:")
         for i, rel in enumerate(related, 1):
             target_name = Path(rel['target']).name
-            print(f"{i}. {target_name}")
-            print(f"   关联类型: {rel['relation_type']}")
-            print(f"   关联度: {rel['weight']:.2f}")
+            logger.info(f"{i}. {target_name}")
+            logger.info(f"   关联类型: {rel['relation_type']}")
+            logger.info(f"   关联度: {rel['weight']:.2f}")
             if rel['common_entities']:
-                print(f"   共同实体: {', '.join(rel['common_entities'])}")
-            print()
+                logger.info(f"   共同实体: {', '.join(rel['common_entities'])}")
     else:
-        print(f"示例文件不存在: {example_file}")
+        logger.warning(f"示例文件不存在: {example_file}")
 
 
 if __name__ == "__main__":

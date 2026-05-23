@@ -12,7 +12,8 @@ import mcp.server.stdio
 WORKSPACE = Path(__file__).resolve().parent
 MEMORY_DIR = WORKSPACE / ".workbuddy" / "记忆层"
 sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "scripts"))
-sys.path.insert(1, str(MEMORY_DIR))
+from path_setup import setup
+setup()
 import workflow_engine as _we_mod
 
 logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")

@@ -8,7 +8,7 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent
 sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "scripts"))
-sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "记忆层"))
+from path_setup import setup; setup()
 
 from flask import Flask, render_template, request, jsonify
 

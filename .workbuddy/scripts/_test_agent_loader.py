@@ -1,5 +1,7 @@
 import sys
-sys.path.insert(0, '.workbuddy/scripts')
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from path_setup import setup_scripts_only; setup_scripts_only()
 from agent_orchestrator import AgentOrchestrator, AgentLoader
 
 ao = AgentOrchestrator()
