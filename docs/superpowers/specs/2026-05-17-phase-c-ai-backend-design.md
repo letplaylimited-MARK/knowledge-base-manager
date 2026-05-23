@@ -106,7 +106,7 @@
 
 ## 5. ModelAdapter 设计
 
-```python
+```text
 class ModelAdapter:
     def __init__(self, config_dir: Path):
         # 扫描 模型配置/ 下所有 *.yaml
@@ -132,7 +132,7 @@ class ModelAdapter:
 
 ## 6. AgentOrchestrator 设计
 
-```python
+```text
 class AgentOrchestrator:
     def load_agent(self, name) -> Agent
         # 读取 智能体定义.md
@@ -148,7 +148,7 @@ class AgentOrchestrator:
 ```
 
 ### WorkflowEngine
-```python
+```text
 class WorkflowEngine:
     def define(steps)
     async def run(workflow, context) -> dict

@@ -23,12 +23,12 @@
 - [ ] **P0-1: Fix os.system → subprocess.run in maintenance_task.py**
 
   Current (line 24):
-  ```python
+  ```text
   os.system(f'python "{update_script}"')
   ```
 
   Replace with:
-  ```python
+  ```text
   import subprocess
   subprocess.run([sys.executable, str(update_script)], check=True)
   ```
@@ -38,25 +38,25 @@
 - [ ] **P0-2: Fix 0.0.0.0 → 127.0.0.1 in app.py**
 
   Current (line 119):
-  ```python
+  ```text
   app.run(host="0.0.0.0", port=args.port, debug=not args.daemon)
   ```
 
   Replace with:
-  ```python
+  ```text
   app.run(host="127.0.0.1", port=args.port, debug=not args.daemon)
   ```
 
 - [ ] **P0-3: Fix copy2 → move in auto_organizer.py**
 
   Current:
-  ```python
+  ```text
   import shutil
   shutil.copy2(plan.file_path, target_path)
   ```
 
   Replace with:
-  ```python
+  ```text
   import shutil
   shutil.move(str(plan.file_path), str(target_path))
   ```
@@ -64,13 +64,13 @@
 - [ ] **P0-4: Fix bare except in update_index.py**
 
   Current (line 42):
-  ```python
+  ```text
   except:
       return {"size": 0, "tags": []}
   ```
 
   Replace with:
-  ```python
+  ```text
   except Exception:
       return {"size": 0, "tags": []}
   ```
@@ -96,7 +96,7 @@
 
 - [ ] **P1-1: Create mcp_server.py — imports and server setup**
 
-  ```python
+  ```text
   import sys
   import json
   import asyncio
@@ -115,7 +115,7 @@
 
 - [ ] **P1-2: Add tool definitions — 15 tools in `list_tools`**
 
-  ```python
+  ```text
   TOOLS: list[Tool] = [
       Tool(name="search_all", description="Full-text + vector + memory combined search",
            inputSchema={"type": "object", "properties": {
@@ -159,7 +159,7 @@
 
 - [ ] **P1-3: Implement lazy imports helper**
 
-  ```python
+  ```text
   _imports = {}
 
   def _get_module(name: str):
@@ -170,7 +170,7 @@
 
 - [ ] **P1-4: Implement search tool handlers**
 
-  ```python
+  ```text
   async def _handle_search_all(query: str, limit: int = 5) -> str:
       try:
           vs = _get_module("vector_search")
@@ -208,7 +208,7 @@
 
 - [ ] **P1-5: Implement content tool handlers**
 
-  ```python
+  ```text
   async def _handle_analyze_content(path: str) -> str:
       try:
           ca = _get_module("content_analyzer")
@@ -244,7 +244,7 @@
 
 - [ ] **P1-6: Implement system tool handlers**
 
-  ```python
+  ```text
   async def _handle_get_status() -> str:
       info = {
           "workspace": str(WORKSPACE),
@@ -293,7 +293,7 @@
 
 - [ ] **P1-7: Wire up handlers to `call_tool` with routing dict**
 
-  ```python
+  ```text
   HANDLERS = {
       "search_all": _handle_search_all,
       "vector_search": _handle_vector_search,
@@ -329,7 +329,7 @@
 
 - [ ] **P1-8: Add main entry point**
 
-  ```python
+  ```text
   async def main():
       async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
           await server.run(
@@ -367,7 +367,7 @@
 
 - [ ] **P2-1-1: Create model_adapter.py — base + YAML loading**
 
-  ```python
+  ```text
   import os
   import sys
   import json
@@ -399,7 +399,7 @@
 
 - [ ] **P2-1-2: Add client lazy-initialization per provider**
 
-  ```python
+  ```text
       def _get_client(self, model_key: str) -> Any:
           if model_key in self._clients:
               return self._clients[model_key]
@@ -428,7 +428,7 @@
 
 - [ ] **P2-1-3: Add chat and embed methods**
 
-  ```python
+  ```text
       def chat(self, model_key: str, messages: list, stream: bool = False,
                temperature: float = None, max_tokens: int = None) -> str:
           cfg = self.models.get(model_key)
@@ -509,7 +509,7 @@
 
 - [ ] **P2-2-1: Create agent_orchestrator.py — Agent class + loading**
 
-  ```python
+  ```text
   import json
   import re
   from pathlib import Path
@@ -560,7 +560,7 @@
 
 - [ ] **P2-2-2: Add RoleLoader for role prompt library**
 
-  ```python
+  ```text
   class RoleLoader:
       def load(self, role_name: str) -> Optional[str]:
           for ext in [".md", ".txt", ".yaml"]:
@@ -572,7 +572,7 @@
 
 - [ ] **P2-2-3: Add AgentOrchestrator class**
 
-  ```python
+  ```text
   class AgentOrchestrator:
       def __init__(self, model_adapter=None):
           self.agent_loader = AgentLoader()
@@ -630,7 +630,7 @@
 
 - [ ] **P2-3-1: Create workflow_engine.py**
 
-  ```python
+  ```text
   import asyncio
   import json
   from dataclasses import dataclass, field

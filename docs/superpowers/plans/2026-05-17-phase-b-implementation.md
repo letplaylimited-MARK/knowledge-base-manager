@@ -122,7 +122,7 @@ Expected: 无错误
 - [ ] **Step 1: 创建 vector_search.py**
 
 Write `.workbuddy/scripts/vector_search.py`:
-```python
+```text
 #!/usr/bin/env python3
 """
 向量语义搜索引擎 — FAISS + sentence-transformers + SQLite
@@ -342,7 +342,7 @@ Expected: `索引了 N 个文件` (N >= 0)
 
 In `smart_router.py`, modify `_generate_path` method to replace all broken paths:
 
-```python
+```text
     def _generate_path(self, layer: KnowledgeLayer, features: Dict, context: Dict) -> str:
         from datetime import datetime
 
@@ -376,7 +376,7 @@ In `smart_router.py`, modify `_generate_path` method to replace all broken paths
 
 Also add auto-creation of missing parent directories in the `route` method:
 
-```python
+```text
     def route(self, content: str, context: Dict = None) -> Dict:
         analysis = self.analyze_content(content, context)
         suggested = analysis['suggested_path']
@@ -408,7 +408,7 @@ In `content_analyzer.py`:
 - In `_determine_content_type` (lines 180-209): Remove business-specific types (风控审核Prompt/诊断报告/制度文档).
 
 Add config loading at top of file:
-```python
+```text
 CONFIG_PATH = Path(__file__).resolve().parent.parent.parent / ".workbuddy" / "config" / "domain_keywords.json"
 def _load_config():
     try:
@@ -419,7 +419,7 @@ def _load_config():
 ```
 
 Remove lines 96-153 entirely and replace with:
-```python
+```text
     def _extract_entities(self, content: str) -> List[Dict]:
         entities = []
         for pattern in self.ontology.get("entity_patterns", []):
@@ -429,7 +429,7 @@ Remove lines 96-153 entirely and replace with:
 ```
 
 Remove lines 155-178 entirely and replace with:
-```python
+```text
     def _extract_concepts(self, content: str) -> List[str]:
         from . import vector_search
         words = set(re.findall(r'[\u4e00-\u9fa5]{2,}', content))
@@ -438,7 +438,7 @@ Remove lines 155-178 entirely and replace with:
 ```
 
 Remove lines 233-257 and replace with:
-```python
+```text
     def _identify_core_topic(self, content: str, entities: List[Dict], concepts: List[str]) -> str:
         title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
         if title_match:
@@ -470,7 +470,7 @@ Expected: `Hello World 通用文档`
 - [ ] **Step 1: 新增 search_memory 方法**
 
 Add after `get_memory_summary` (~line 435):
-```python
+```text
     def search_memory(self, query: str, top_k: int = 5) -> List[Dict]:
         """在所有三层记忆中搜索"""
         results = []
@@ -513,14 +513,14 @@ Expected: Found 1 results, checkpoint saved
 - [ ] **Step 1: 添加 post_processing 方法**
 
 Add import at top:
-```python
+```text
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from vector_search import index_file
 ```
 
 Add method after `execute_plan` (~line 296):
-```python
+```text
     def post_process(self, plan: OrganizationPlan) -> Dict:
         """处理后操作：索引 + 记忆"""
         from memoryos import MemoryOS
@@ -579,7 +579,7 @@ Expected: 输出推理内容（文件不存在不影响）
 - [ ] **Step 1: 创建 app.py**
 
 Write `app.py`:
-```python
+```text
 #!/usr/bin/env python3
 """
 统一入口 — Web UI / REST API / CLI
@@ -876,7 +876,7 @@ Then stop server: kill the flask process.
 - [ ] **Step 1: 修改 inbox_watcher.py**
 
 Add after `generate_intake_report` (before `main`):
-```python
+```text
 def trigger_pipeline(file_path: Path):
     """触发完整处理流水线"""
     try:
@@ -890,7 +890,7 @@ def trigger_pipeline(file_path: Path):
 ```
 
 And in `main()`, after `generate_intake_report`, add:
-```python
+```text
         trigger_pipeline(file_path)
 ```
 
@@ -912,7 +912,7 @@ Expected: `trigger OK` (pipeline may print info)
 - [ ] **Step 1: 在 maintenance_task.py 中增加 memory 清理 + 索引重建**
 
 In `main()` add after existing steps:
-```python
+```text
     from memoryos import MemoryOS
     mem = MemoryOS(str(WORKSPACE / ".workbuddy" / "记忆层" / "memory_data"))
     mem.save_checkpoint()
@@ -927,7 +927,7 @@ In `main()` add after existing steps:
 - [ ] **Step 2: 扩展 update_index.py 的扫描范围**
 
 In `update_index.py`, change `SCAN_DIRS` to include more dirs:
-```python
+```text
 SCAN_DIRS = [
     WORKSPACE / "01-收件箱",
     WORKSPACE / "02-对话记录",
@@ -940,7 +940,7 @@ SCAN_DIRS = [
 ```
 
 Also add vector_search index rebuild at end of `update_index()`:
-```python
+```text
     try:
         from vector_search import rebuild_index, build_faiss_index, HAS_VECTOR
         count = rebuild_index(SCAN_DIRS)

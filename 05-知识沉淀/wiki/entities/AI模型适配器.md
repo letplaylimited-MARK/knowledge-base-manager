@@ -53,11 +53,17 @@ AI模型适配器（Model Adapter）是本系统AI协作层的核心组件。它
 ## 适配器接口
 
 ```python
+from typing import Generator, List
+
 class ModelAdapter:
-    def chat(self, messages: list, model: str = None) -> str
-    def stream_chat(self, messages: list, model: str = None) -> Generator
-    def get_available_models(self) -> list
-    def set_default_model(self, model: str) -> None
+    def chat(self, messages: List, model: str = None) -> str:
+        ...
+    def stream_chat(self, messages: List, model: str = None) -> Generator:
+        ...
+    def get_available_models(self) -> List:
+        ...
+    def set_default_model(self, model: str) -> None:
+        ...
 ```
 
 ## 使用示例

@@ -27,7 +27,7 @@ Prevent long-running tasks from blocking the MCP event loop.
 
 Introduce a lightweight `TaskManager` class in `mcp_server.py`:
 
-```python
+```text
 class TaskManager:
     def __init__(self):
         self._tasks: dict[str, asyncio.Task] = {}
@@ -77,7 +77,7 @@ Every MCP tool handler validates its parameters before doing work.
 
 Add a lightweight `validate_params()` function in `mcp_server.py`:
 
-```python
+```text
 def validate_params(params: dict, schema: dict[str, tuple[type, bool, str]]):
     """Validate params against schema.
     
@@ -121,7 +121,7 @@ Return structured errors that allow the caller to distinguish mistake from syste
 
 New file `.workbuddy/scripts/errors.py`:
 
-```python
+```text
 class AppError(Exception):
     def __init__(self, message: str, error_type: str):
         self.message = message
@@ -145,7 +145,7 @@ class UnexpectedError(AppError):
 
 Replace bare `except Exception:` blocks:
 
-```python
+```text
 try:
     ...
 except UserError as e:
@@ -181,7 +181,7 @@ Affected scripts:
 - `.workbuddy/scripts/enhanced_inbox_watcher.py`
 
 Each gets:
-```python
+```text
 import logging
 logger = logging.getLogger(__name__)
 ```

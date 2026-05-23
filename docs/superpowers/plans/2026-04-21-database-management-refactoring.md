@@ -333,7 +333,7 @@ git commit -m "fix: 统一记忆层路径引用"
 
 - [ ] **Step 1: 创建Wiki转记忆脚本**
 
-```python
+```text
 #!/usr/bin/env python3
 """
 Wiki to Memory Import Script
@@ -379,7 +379,7 @@ if __name__ == "__main__":
 
 - [ ] **Step 2: 创建Wiki转向量脚本**
 
-```python
+```text
 #!/usr/bin/env python3
 """
 Wiki to Vector Import Script
@@ -417,7 +417,7 @@ if __name__ == "__main__":
 
 - [ ] **Step 3: 创建统一Ingest脚本**
 
-```python
+```text
 #!/usr/bin/env python3
 """
 Unified Ingest Script
