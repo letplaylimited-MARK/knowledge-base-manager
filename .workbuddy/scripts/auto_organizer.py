@@ -141,7 +141,7 @@ class AutoOrganizer:
 
     def _should_move(self, file_path: Path, target_dir: str) -> bool:
         """判断是否需要移动"""
-        current_dir = str(file_path.parent.relative_to(self.base_path))
+        current_dir = os.path.relpath(str(file_path.parent), str(self.base_path))
 
         # 已经在正确位置
         if target_dir in current_dir or current_dir in target_dir:

@@ -4,6 +4,7 @@
 """
 
 import sqlite3
+import os
 import numpy as np
 from pathlib import Path
 from typing import List, Dict
@@ -53,7 +54,7 @@ def index_file(file_path: Path) -> bool:
         content = file_path.read_text(encoding="utf-8", errors="ignore")
     except Exception:
         return False
-    rel_path = str(file_path.relative_to(WORKSPACE))
+    rel_path = os.path.relpath(str(file_path), str(WORKSPACE))
     title = file_path.stem
     preview = content[:500]
     conn = _get_db()
