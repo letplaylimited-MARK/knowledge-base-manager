@@ -248,7 +248,13 @@ def ensure_demo_data(force: bool = False) -> int:
 def ensure_search_index(force: bool = False) -> dict:
     """确保搜索索引存在，返回索引统计"""
     index_db = WORKSPACE / ".workbuddy" / "index" / "search_index.db"
-    faiss_file = WORKSPACE / ".workbuddy" / "index" / "vectors.faiss"
+
+    # FAISS 路径：非 ASCII 路径下 C fopen 无法处理，回退到 TEMP
+    _faiss_path = WORKSPACE / ".workbuddy" / "index" / "vectors.faiss"
+    if str(_faiss_path).isascii():
+        faiss_file = _faiss_path
+    else:
+        faiss_file = Path(_os.environ.get("TEMP", _os.environ.get("TMPDIR", "/tmp"))) / "km_vectors.faiss"
 
     # 检查索引是否有效
     has_db = index_db.exists()
