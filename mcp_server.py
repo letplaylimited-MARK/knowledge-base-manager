@@ -37,6 +37,7 @@ async def handle_search_all(query: str, limit: int = 5) -> str:
             "total_vector": len(vec_results),
         }, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_search_all failed")
         return json.dumps({"error": str(e)})
 
 
@@ -46,6 +47,7 @@ async def handle_vector_search(query: str, limit: int = 5, **kwargs) -> str:
         results = vs_search(query, top_k=limit)
         return json.dumps(results, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_vector_search failed")
         return json.dumps({"error": str(e)})
 
 
@@ -56,6 +58,7 @@ async def handle_search_memory(query: str, context: str = None) -> str:
         results = mem.search_memory(query)
         return json.dumps(results, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_search_memory failed")
         return json.dumps({"error": str(e)})
 
 
@@ -68,6 +71,7 @@ async def handle_keyword_search(keywords: list, **kwargs) -> str:
             all_results[kw] = results[:20]
         return json.dumps(all_results, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_keyword_search failed")
         return json.dumps({"error": str(e)})
 
 
@@ -92,6 +96,7 @@ async def handle_analyze_content(path: str) -> str:
             "report": report,
         }, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_analyze_content failed")
         return json.dumps({"error": str(e)})
 
 
@@ -117,6 +122,7 @@ async def handle_route_content(path: str) -> str:
             "suggested_path": result["suggested_path"],
         }, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_route_content failed")
         return json.dumps({"error": str(e)})
 
 
@@ -142,6 +148,7 @@ async def handle_process_file(path: str) -> str:
             }, ensure_ascii=False)
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_process_file failed")
         return json.dumps({"error": str(e)})
 
 
@@ -155,6 +162,7 @@ async def handle_get_status() -> str:
                 with sqlite3.connect(str(_vs.DB_PATH)) as conn:
                     doc_count = conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
             except Exception:
+                logger.exception("handle_get_status doc_count query failed")
                 pass
         return json.dumps({
             "server": "db-knowledge",
@@ -165,6 +173,7 @@ async def handle_get_status() -> str:
             "has_vector_capability": _vs.HAS_VECTOR,
         }, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_get_status failed")
         return json.dumps({"error": str(e)})
 
 
@@ -174,6 +183,7 @@ async def handle_rebuild_index() -> str:
         files = update_index()
         return json.dumps({"indexed_files": len(files)}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_rebuild_index failed")
         return json.dumps({"error": str(e)})
 
 
@@ -183,6 +193,7 @@ async def handle_run_maintenance() -> str:
         maintenance_task.main()
         return json.dumps({"status": "maintenance completed"}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_run_maintenance failed")
         return json.dumps({"error": str(e)})
 
 
@@ -192,6 +203,7 @@ async def handle_run_backup() -> str:
         maintenance_task.backup()
         return json.dumps({"status": "backup completed"}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_run_backup failed")
         return json.dumps({"error": str(e)})
 
 
@@ -202,6 +214,7 @@ async def handle_get_graph() -> str:
         summary = mem.get_memory_summary()
         return json.dumps(summary, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_get_graph failed")
         return json.dumps({"error": str(e)})
 
 
@@ -211,6 +224,7 @@ async def handle_watch_inbox() -> str:
         files = scan_inbox()
         return json.dumps({"files": files, "count": len(files)}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_watch_inbox failed")
         return json.dumps({"error": str(e)})
 
 
@@ -240,6 +254,7 @@ async def handle_get_content_stats() -> str:
         stats["total_python"] = len(py_files)
         return json.dumps(stats, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_get_content_stats failed")
         return json.dumps({"error": str(e)})
 
 
@@ -249,6 +264,7 @@ async def handle_enhanced_scan_inbox() -> str:
         files = scan_inbox()
         return json.dumps({"files": files, "count": len(files)}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_enhanced_scan_inbox failed")
         return json.dumps({"error": str(e)})
 
 
@@ -261,6 +277,7 @@ async def handle_extract_docx_text(path: str) -> str:
         text = extract_docx(str(file_path))
         return json.dumps({"path": str(file_path), "text": text}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_extract_docx_text failed")
         return json.dumps({"error": str(e)})
 
 
@@ -288,6 +305,7 @@ async def handle_analyze_project_relationships(path: str = None) -> str:
                     sig = mgr.analyze_file_signature(fp, content)
                     mgr.files[fp] = sig
                 except Exception:
+                    logger.exception("handle_analyze_project_relationships file scan failed")
                     pass
         projects = mgr.identify_project_boundaries(list(mgr.files.values()))
         mgr.projects = {p.candidate_id: p for p in projects}
@@ -295,6 +313,7 @@ async def handle_analyze_project_relationships(path: str = None) -> str:
         report = mgr.generate_comprehensive_report()
         return json.dumps(report, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_analyze_project_relationships failed")
         return json.dumps({"error": str(e)})
 
 
@@ -319,6 +338,7 @@ async def handle_run_file_pipeline(path: str) -> str:
             "full_report": report,
         }, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_run_file_pipeline failed")
         return json.dumps({"error": str(e)})
 
 
@@ -333,6 +353,7 @@ async def handle_project_decision_workflow(path: str) -> str:
         result = workflow.process_new_file(str(file_path), content)
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_project_decision_workflow failed")
         return json.dumps({"error": str(e)})
 
 
@@ -372,6 +393,7 @@ async def handle_run_workflow(name: str, context: str = None) -> str:
     except ValueError as e:
         return json.dumps({"error": str(e)}, ensure_ascii=False)
     except Exception as e:
+        logger.exception("handle_run_workflow failed")
         return json.dumps({"error": f"Workflow execution failed: {e}"}, ensure_ascii=False)
 
 
@@ -658,6 +680,7 @@ def _startup_healthcheck():
             n = _vs.build_faiss_index()
             issues.append(f"  [AUTO] FAISS index missing, rebuilt: {n} vectors")
     except Exception:
+        logger.exception("_startup_healthcheck FAISS index check failed")
         pass
     logger.info(f"Healthcheck: {len(MODULES_TO_CHECK)} modules checked")
     if issues:
