@@ -10,7 +10,7 @@ import json
 import re
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Set
+from typing import List, Dict
 from collections import defaultdict
 from difflib import SequenceMatcher
 
@@ -227,13 +227,7 @@ class RelationDiscovery:
     
     def _is_version_relation(self, name_a: str, name_b: str) -> bool:
         """判断是否为版本关系"""
-        # 简单的版本号检测
-        version_patterns = [
-            r'v(\d+\.?\d*)',
-            r'(\d+\.?\d*)版',
-            r'version[_\-]?(\d+)',
-        ]
-        
+        # 简单的版本号检测（通过正则直接匹配，不需要预编译patterns列表）
         base_a = re.sub(r'v?\d+\.?\d*', '', name_a).strip('_- ')
         base_b = re.sub(r'v?\d+\.?\d*', '', name_b).strip('_- ')
         

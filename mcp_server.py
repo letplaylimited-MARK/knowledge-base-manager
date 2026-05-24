@@ -12,9 +12,9 @@ import mcp.server.stdio
 WORKSPACE = Path(__file__).resolve().parent
 MEMORY_DIR = WORKSPACE / ".workbuddy" / "记忆层"
 sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "scripts"))
-from path_setup import setup
+from path_setup import setup  # noqa: E402
 setup()
-import workflow_engine as _we_mod
+import workflow_engine as _we_mod  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s %(message)s")
 logger = logging.getLogger("mcp-server")

@@ -5,15 +5,16 @@
 """
 
 import os
-from path_setup import setup_scripts_only; setup_scripts_only()
+from path_setup import setup_scripts_only  # noqa: E402
+setup_scripts_only()
 
-from pathlib import Path
-from typing import List, Dict
-from dataclasses import dataclass
-from datetime import datetime
+from pathlib import Path  # noqa: E402
+from typing import List, Dict  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from datetime import datetime  # noqa: E402
 
-from content_analyzer import ContentAnalyzer, ContentInsight
-from naming_optimizer import NamingOptimizer, NamingSuggestion
+from content_analyzer import ContentAnalyzer, ContentInsight  # noqa: E402
+from naming_optimizer import NamingOptimizer, NamingSuggestion  # noqa: E402
 
 @dataclass
 class OrganizationPlan:

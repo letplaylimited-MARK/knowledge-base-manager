@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """知识库框架安装验证脚本 — 验证依赖、目录结构和关键文件完整性"""
-import sys, os, subprocess, importlib
+import sys
+import os
+import subprocess
+import importlib
 from pathlib import Path
 
 class VerifyReport:
@@ -27,10 +30,10 @@ class VerifyReport:
         print(f"\n{'='*50}")
         print(f"验证结果: {len(self.passed)} 通过 | {len(self.failed)} 失败 | {len(self.warnings)} 警告")
         if self.failed:
-            print(f"\n请先修复失败项，再运行本脚本确认。")
+            print("\n请先修复失败项，再运行本脚本确认。")
             return 1
         else:
-            print(f"\n验证通过！项目可正常运行。")
+            print("\n验证通过！项目可正常运行。")
             return 0
 
 
@@ -61,7 +64,7 @@ def main():
             report.ok(f"依赖 {pkg_name} ({ver})")
         except ImportError:
             if critical:
-                report.fail(f"缺失关键依赖: {pkg_name}", f"pip install -r requirements.txt")
+                report.fail(f"缺失关键依赖: {pkg_name}", "pip install -r requirements.txt")
             else:
                 report.warn(f"可选依赖缺失: {pkg_name}")
 
@@ -82,7 +85,7 @@ def main():
         if Path(d).exists():
             report.ok(f"目录 {d}/")
         else:
-            report.fail(f"缺失目录: {d}/", f"运行 00-快速开始/setup.bat 初始化")
+            report.fail(f"缺失目录: {d}/", "运行 00-快速开始/setup.bat 初始化")
 
     # 4. 关键文件
     expected_files = [
@@ -97,7 +100,7 @@ def main():
             report.ok(f"文件 {f}")
         else:
             if critical:
-                report.fail(f"缺失关键文件: {f}", f"确认项目完整性")
+                report.fail(f"缺失关键文件: {f}", "确认项目完整性")
             else:
                 report.warn(f"可选文件缺失: {f}")
 
@@ -106,7 +109,7 @@ def main():
         report.ok("已配置 .env 环境文件")
     else:
         report.warn("未配置 .env 环境文件 — API 密钥和高级功能不可用")
-        print(f"         → 复制 .env.example 为 .env 并填入实际值")
+        print("         → 复制 .env.example 为 .env 并填入实际值")
 
     # 6. 测试套件
     try:
@@ -125,7 +128,7 @@ def main():
 
     # 7. Flask 运行能力
     try:
-        from flask import Flask
+        import flask  # noqa: F401
         report.ok("Flask 可正常导入")
     except ImportError:
         report.fail("Flask 导入失败", "pip install Flask")

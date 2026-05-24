@@ -8,9 +8,10 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent
 sys.path.insert(0, str(WORKSPACE / ".workbuddy" / "scripts"))
-from path_setup import setup; setup()
+from path_setup import setup  # noqa: E402
+setup()
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify  # noqa: E402
 
 app = Flask(__name__, template_folder=str(WORKSPACE / ".workbuddy" / "templates"))
 

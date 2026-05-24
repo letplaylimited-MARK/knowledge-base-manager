@@ -18,6 +18,7 @@ async def _start_server():
         sys.executable, str(MCP_SERVER),
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         cwd=str(WORKSPACE), env=env,
+        limit=1048576,  # 1 MB — some tools (e.g. analyze_project_relationships) return ~60 KB JSON
     )
 
     next_rid = 1

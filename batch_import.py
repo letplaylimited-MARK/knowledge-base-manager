@@ -14,11 +14,11 @@ SCRIPTS_DIR = Path(__file__).resolve().parent / ".workbuddy" / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from path_setup import setup
+from path_setup import setup  # noqa: E402
 setup()
 
-from auto_organizer import AutoOrganizer
-from content_analyzer import ContentAnalyzer
+from auto_organizer import AutoOrganizer  # noqa: E402
+from content_analyzer import ContentAnalyzer  # noqa: E402
 
 
 class BatchImporter:

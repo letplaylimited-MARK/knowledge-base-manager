@@ -118,7 +118,8 @@ def main():
 
         # 新增: 记忆 checkpoint + 向量索引重建
         try:
-            from path_setup import setup_scripts_only; setup_scripts_only()
+            from path_setup import setup_scripts_only  # noqa: E402
+            setup_scripts_only()
             from memoryos import MemoryOS
             mem = MemoryOS(str(WORKSPACE / ".workbuddy" / "记忆层" / "memory_data"))
             mem.save_checkpoint()

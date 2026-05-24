@@ -6,7 +6,6 @@
 
 import json
 import hashlib
-import sys
 from pathlib import Path
 from datetime import datetime
 
@@ -99,7 +98,8 @@ def scan_inbox():
 def trigger_pipeline(file_path: Path):
     """触发完整处理流水线"""
     try:
-        from path_setup import setup_scripts_only; setup_scripts_only()
+        from path_setup import setup_scripts_only  # noqa: E402
+        setup_scripts_only()
         from auto_organizer import AutoOrganizer
         org = AutoOrganizer(str(WORKSPACE))
         result = org.process_and_store(file_path, dry_run=True)

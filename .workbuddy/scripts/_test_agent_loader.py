@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from path_setup import setup_scripts_only; setup_scripts_only()
-from agent_orchestrator import AgentOrchestrator, AgentLoader
+from path_setup import setup_scripts_only  # noqa: E402
+setup_scripts_only()
+from agent_orchestrator import AgentOrchestrator, AgentLoader  # noqa: E402
 
 ao = AgentOrchestrator()
 

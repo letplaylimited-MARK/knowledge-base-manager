@@ -12,8 +12,9 @@ for fname in ['协调员.md', '扫描员.md', '分析师.md', '推荐员.md', '�
 
 # Verify RoleLoader returns all 6 roles
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from path_setup import setup_scripts_only; setup_scripts_only()
-from agent_orchestrator import RoleLoader
+from path_setup import setup_scripts_only  # noqa: E402
+setup_scripts_only()
+from agent_orchestrator import RoleLoader  # noqa: E402
 rl = RoleLoader()
 for atype in ['coordinator','scanner','analyzer','recommender','architect','observer']:
     role = rl.load(atype)

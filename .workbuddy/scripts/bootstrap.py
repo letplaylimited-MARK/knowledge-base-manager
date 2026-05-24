@@ -269,7 +269,8 @@ def ensure_search_index(force: bool = False) -> dict:
             return {"documents": count, "faiss": has_faiss, "rebuilt": False}
 
     # 需要重建
-    from path_setup import setup_scripts_only; setup_scripts_only()
+    from path_setup import setup_scripts_only  # noqa: E402
+    setup_scripts_only()
 
     from vector_search import rebuild_index, build_faiss_index, HAS_VECTOR
 
@@ -311,7 +312,7 @@ def print_bootstrap_report(result: dict) -> None:
     if demo > 0:
         print(f"  演示数据: 已创建 {demo} 个文件")
     else:
-        print(f"  演示数据: 已就绪（跳过）")
+        print("  演示数据: 已就绪（跳过）")
 
     idx = result["index"]
     if idx.get("rebuilt"):

@@ -3,7 +3,6 @@
 # Monitors 01-收件箱/ for new files and generates intake recommend
 
 import hashlib
-import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -150,7 +149,8 @@ def scan_inbox():
 def trigger_pipeline(file_path: Path):
     """触发完整处理流水线"""
     try:
-        from path_setup import setup_scripts_only; setup_scripts_only()
+        from path_setup import setup_scripts_only  # noqa: E402
+        setup_scripts_only()
         from auto_organizer import AutoOrganizer
         from memoryos import MemoryOS
         org = AutoOrganizer(str(WORKSPACE))
