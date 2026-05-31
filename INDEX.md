@@ -1,7 +1,7 @@
 # 03.数据库管理_文件夹整理AI应用 -- INDEX
 
 > 定位: 通用知识库框架 **V2.0 生产级应用** | 2026-05-23
-> 技术栈: Flask + FAISS + MCP + ChromaDB | 测试: 103/103 pass
+> 技术栈: Flask + SQLite + FAISS + MCP | 测试: 107/107 pass
 
 ## 文件结构
 ```
@@ -25,7 +25,7 @@
 │   └── FRAMEWORK.md 框架说明
 ├── docs/                      补充文档
 │   └── 结构体系.md
-└── tests/                     测试套件 (103/103)
+└── tests/                     测试套件 (107/107)
 ```
 
 ## 关键入口
@@ -48,7 +48,7 @@
 python -m venv .venv
 .venv/Scripts/activate       # Windows
 pip install -r requirements.txt
-pytest tests/ -v             # 验证安装 (103/103)
+pytest tests/ -v             # 验证安装 (107/107)
 python app.py                # 启动服务
 ```
 
@@ -58,5 +58,5 @@ python app.py                # 启动服务
 | 知识图谱管理 | 05-知识沉淀/wiki/ |
 | 长期记忆系统 | .workbuddy/记忆层/ (MemoryOS 三层引擎) |
 | AI 协作体系 | .workbuddy/AI协作体系/ |
-| 向量检索 | mcp_server.py (FAISS + ChromaDB) |
+| 向量检索 | .workbuddy/scripts/vector_search.py (SQLite + FAISS) |
 | 自动化处理 | 24 个 Python 脚本 |

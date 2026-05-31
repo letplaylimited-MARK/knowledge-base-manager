@@ -35,10 +35,12 @@ def search():
 @app.route("/browse/")
 @app.route("/browse/<path:subpath>")
 def browse(subpath=""):
-    base = WORKSPACE / "05-知识沉淀" / "wiki"
+    base = (WORKSPACE / "05-知识沉淀" / "wiki").resolve()
     current = (base / subpath).resolve()
 
-    if not str(current).startswith(str(base)):
+    try:
+        current.relative_to(base)
+    except ValueError:
         return "Forbidden", 403
 
     if not current.exists():

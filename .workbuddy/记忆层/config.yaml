@@ -63,8 +63,8 @@ memory_types:
 storage:
   base_path: "./memory_data"
 
-  # 是否使用ChromaDB存储向量
-  use_chromadb: true
+  # 外部向量数据库预留开关；当前 memoryos.py 使用 JSONL/JSON 文件持久化
+  use_chromadb: false
   chromadb_path: "./memory_data/chromadb"
 
   # 嵌入模型

@@ -43,7 +43,7 @@
 │   ├── 完整使用指南.md
 │   ├── AI模型配置指南.md
 │   └── superpowers/           # 开发计划与规格
-├── tests/                     # 测试套件（14个测试文件，103个用例）
+├── tests/                     # 测试套件（15个测试文件，107个用例）
 ├── .github/workflows/         # CI/CD 配置
 ├── .workbuddy/                # 核心系统
 │   ├── scripts/               # 24个自动化脚本
@@ -93,11 +93,11 @@
 ### 2.1 知识图谱体系
 - **路径**: `05-知识沉淀/wiki/`
 - **结构**: concepts（概念）/ entities（实体）/ sources（来源）/ comparisons（对比）
-- **检索**: SQLite 全文检索 + FAISS 向量语义搜索（混合检索）
+- **检索**: 文件扫描关键词检索 + SQLite 索引 + FAISS 向量语义搜索（混合检索）
 
 ### 2.2 MemoryOS 记忆引擎
 - **路径**: `.workbuddy/记忆层/`
-- **能力**: 短期/中期/长期记忆，基于 HNSW 向量索引
+- **能力**: 短期/中期/长期记忆，JSON/JSONL 文件持久化
 - **持久化**: `memory_data/` 目录（已纳入 .gitignore）
 
 ### 2.3 AI 协作系统
@@ -197,7 +197,7 @@ main          # 主分支，稳定版本
 □ .gitignore 正确配置（不排除核心脚本）
 □ requirements-lock.txt 与 requirements.txt 一致
 □ 所有文档版本号统一为 V2.0
-□ 测试套件 103/103 全通过
+□ 测试套件 107/107 全通过
 □ CI/CD 配置完整（Python 3.12/3.13/3.14）
 □ FRAMEWORK.md 与实际目录结构一致（本文件）
 □ 无敏感文件泄露（.env、.coverage 等已排除）

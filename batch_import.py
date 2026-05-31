@@ -39,10 +39,8 @@ class BatchImporter:
             if not file_path.is_file():
                 continue
             try:
-                result = self.organizer.process_and_store(
-                    str(file_path), dry_run=False
-                )
-                if result.get("status") == "success":
+                result = self.organizer.process_and_store(file_path, dry_run=False)
+                if result.get("executed"):
                     self.stats["success"] += 1
                 else:
                     self.stats["skipped"] += 1
@@ -57,12 +55,12 @@ class BatchImporter:
         plans = []
         for file_path in Path(source_dir).glob("*"):
             if file_path.is_file():
-                insight = self.analyzer.analyze_file(str(file_path))
+                insight = self.analyzer.analyze_file(file_path)
                 plans.append({
                     "file": str(file_path),
-                    "topic": insight.get("core_topic", ""),
-                    "type": insight.get("content_type", ""),
-                    "confidence": insight.get("confidence", 0.0)
+                    "topic": insight.core_topic,
+                    "type": insight.content_type,
+                    "confidence": insight.confidence
                 })
         return plans
 

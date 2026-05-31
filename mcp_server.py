@@ -2,12 +2,20 @@ import sys
 import json
 import asyncio
 import logging
+from contextlib import redirect_stdout
 from pathlib import Path
 
 from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 from mcp.types import Tool, TextContent, ListToolsResult, CallToolResult
 import mcp.server.stdio
+
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 WORKSPACE = Path(__file__).resolve().parent
 MEMORY_DIR = WORKSPACE / ".workbuddy" / "记忆层"
@@ -640,7 +648,8 @@ async def call_tool(name: str, arguments: dict) -> CallToolResult:
     handler = HANDLERS.get(name)
     if not handler:
         return CallToolResult(content=[TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))])
-    result = await handler(**arguments)
+    with redirect_stdout(sys.stderr):
+        result = await handler(**arguments)
     return CallToolResult(content=[TextContent(type="text", text=result)])
 
 

@@ -224,7 +224,7 @@ class LongTermMemory:
     长期记忆 (Long-term Memory)
     - 容量: 100条
     - 存储: 用户画像、知识库、策略
-    - 持久化: ChromaDB
+    - 持久化: JSON files (user_profile / knowledge / strategies)
     """
 
     def __init__(self, storage_path: str, capacity: int = 100):

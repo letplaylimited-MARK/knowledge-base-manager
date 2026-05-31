@@ -49,7 +49,7 @@ heat:
 ├── raw/                    ← 原始资料
 ├── processed/              ← 处理后
 ├── knowledge/             ← Layer 2: 知识库
-├── 向量数据库/            ← Layer 3: ChromaDB
+├── .workbuddy/index/      ← 派生搜索索引 (SQLite + FAISS)
 ├── AIP接口/               ← Layer 4: API
 └── memory/                ← NEW: MemoryOS 记忆系统
     ├── memoryos.py        ← 核心引擎
@@ -65,6 +65,6 @@ heat:
 - [x] 使用文档 (README.md)
 - [x] 三层记忆实现
 - [x] 五种记忆类型支持
-- [ ] ChromaDB 集成
+- [ ] 外部向量数据库集成
 - [ ] 混合检索引擎
 - [ ] 评估模块

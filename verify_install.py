@@ -55,6 +55,7 @@ def main():
         ("flask", "Flask", True),
         ("numpy", "numpy", True),
         ("yaml", "PyYAML", True),
+        ("mcp", "mcp", True),
         ("pytest", "pytest", False),
     ]
     for import_name, pkg_name, critical in required:

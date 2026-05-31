@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 import tempfile
 
 import os
@@ -10,76 +9,62 @@ import uuid
 os.environ["TEMP"] = tempfile.gettempdir()
 
 
-WORKSPACE = Path(__file__).resolve().parent.parent
-_test_counter = 0
+@pytest.fixture()
+def vector_search_module(tmp_path, monkeypatch):
+    import vector_search
+    workspace = tmp_path / "workspace"
+    index_dir = workspace / ".workbuddy" / "index"
+    workspace.mkdir()
+
+    monkeypatch.setattr(vector_search, "WORKSPACE", workspace)
+    monkeypatch.setattr(vector_search, "INDEX_DIR", index_dir)
+    monkeypatch.setattr(vector_search, "DB_PATH", index_dir / "search_index.db")
+    monkeypatch.setattr(vector_search, "FAISS_PATH", tmp_path / "vectors.faiss")
+    return vector_search
 
 
-def _workspace_temp(suffix: str) -> Path:
-    global _test_counter
-    _test_counter += 1
-    return WORKSPACE / f"__test_tmp_{_test_counter}_{uuid.uuid4().hex[:8]}{suffix}"
+def _workspace_temp(workspace, suffix: str):
+    return workspace / f"__test_tmp_{uuid.uuid4().hex[:8]}{suffix}"
 
 
 class TestIndexFile:
-    def test_index_file_creates_db_entry(self):
-        from vector_search import index_file, _get_db, DB_PATH
-        if DB_PATH.exists():
-            DB_PATH.unlink()
-        tmp = _workspace_temp(".md")
+    def test_index_file_creates_db_entry(self, vector_search_module):
+        tmp = _workspace_temp(vector_search_module.WORKSPACE, ".md")
         tmp.write_text("# Test\nhello world")
-        try:
-            assert index_file(tmp)
-            conn = _get_db()
-            rel = str(tmp.relative_to(WORKSPACE))
-            row = conn.execute("SELECT path FROM documents WHERE path=?", (rel,)).fetchone()
-            conn.close()
-            assert row is not None
-        finally:
-            tmp.unlink()
+        assert vector_search_module.index_file(tmp)
+        conn = vector_search_module._get_db()
+        rel = str(tmp.relative_to(vector_search_module.WORKSPACE))
+        row = conn.execute("SELECT path FROM documents WHERE path=?", (rel,)).fetchone()
+        conn.close()
+        assert row is not None
 
-    def test_index_file_skips_directory(self):
-        from vector_search import index_file
-        tmpdir = _workspace_temp("_dir")
+    def test_index_file_skips_directory(self, vector_search_module):
+        tmpdir = _workspace_temp(vector_search_module.WORKSPACE, "_dir")
         tmpdir.mkdir()
-        try:
-            assert not index_file(tmpdir)
-        finally:
-            tmpdir.rmdir()
+        assert not vector_search_module.index_file(tmpdir)
 
-    def test_rebuild_index_returns_count(self):
-        from vector_search import rebuild_index, DB_PATH
-        if DB_PATH.exists():
-            DB_PATH.unlink()
-        count = rebuild_index()
+    def test_rebuild_index_returns_count(self, vector_search_module):
+        count = vector_search_module.rebuild_index()
         assert isinstance(count, int)
         assert count >= 0
 
 
 class TestSearchKeyword:
-    def test_search_existing(self):
-        from vector_search import search_keyword, index_file, DB_PATH
-        if not DB_PATH.exists():
-            import importlib
-            importlib.import_module("vector_search").rebuild_index()
-        tmp = _workspace_temp(".md")
+    def test_search_existing(self, vector_search_module):
+        tmp = _workspace_temp(vector_search_module.WORKSPACE, ".md")
         tmp.write_text("pytest_special_keyword_abc123")
-        try:
-            index_file(tmp)
-            results = search_keyword("pytest_special_keyword_abc123")
-            assert len(results) >= 1
-        finally:
-            tmp.unlink()
+        vector_search_module.index_file(tmp)
+        results = vector_search_module.search_keyword("pytest_special_keyword_abc123")
+        assert len(results) >= 1
 
-    def test_search_nonexistent(self):
-        from vector_search import search_keyword
-        results = search_keyword("zzz_nonexistent_999")
+    def test_search_nonexistent(self, vector_search_module):
+        results = vector_search_module.search_keyword("zzz_nonexistent_999")
         assert isinstance(results, list)
 
 
 class TestBuildFaiss:
-    def test_build_faiss_returns_int(self):
-        from vector_search import build_faiss_index, HAS_VECTOR
-        if not HAS_VECTOR:
+    def test_build_faiss_returns_int(self, vector_search_module):
+        if not vector_search_module.HAS_VECTOR:
             pytest.skip("FAISS not installed")
-        count = build_faiss_index()
+        count = vector_search_module.build_faiss_index()
         assert isinstance(count, int)
